@@ -1,0 +1,218 @@
+# test build on the course VM: gcc -O2 -pthread -DURGENT_MS=1500 -DTIMEOUT_MS=3000 vault.c; ./vault 30 7
+# shorter limits make URGENT and TIMEOUT (with 2 s backoff and a new ticket) common
+Telemetry vault: 6 analysts (max 3 readers), 2 uplinks, 1 archiver, 30 s, seed 7
+[  0.00s] Analyst 0 idle
+[  0.00s] Analyst 1 idle
+[  0.00s] Analyst 2 idle
+[  0.00s] Analyst 3 idle
+[  0.00s] Analyst 4 idle
+[  0.00s] Analyst 5 idle
+[  0.00s] Uplink 0 idle
+[  0.00s] Uplink 1 idle
+[  0.00s] Archiver 0 idle
+[  1.53s] Analyst 4 requesting read (ticket 1)
+[  1.53s] Analyst 4 reading (readers active: 1, version: 0)
+[  1.90s] Analyst 2 requesting read (ticket 2)
+[  1.90s] Analyst 2 reading (readers active: 2, version: 0)
+[  1.93s] Analyst 1 requesting read (ticket 3)
+[  1.93s] Analyst 1 reading (readers active: 3, version: 0)
+[  2.16s] Uplink 1 requesting write (ticket 4)
+[  2.45s] Analyst 5 requesting read (ticket 5)
+[  2.87s] Analyst 4 reading verified: CONSISTENT (version: 0)
+[  2.87s] Analyst 4 finished reading, idle
+[  3.09s] Analyst 1 reading verified: CONSISTENT (version: 0)
+[  3.09s] Analyst 1 finished reading, idle
+[  3.19s] Analyst 0 requesting read (ticket 6)
+[  3.41s] Uplink 0 requesting write (ticket 7)
+[  3.44s] Analyst 2 reading verified: CONSISTENT (version: 0)
+[  3.44s] Analyst 2 finished reading, idle
+[  3.44s] Uplink 1 writing (version: 0 -> 1)
+[  3.84s] Analyst 3 requesting read (ticket 8)
+[  3.95s] Analyst 5 request is now URGENT (waited 1.5s)
+[  4.69s] Analyst 0 request is now URGENT (waited 1.5s)
+[  4.92s] Uplink 0 request is now URGENT (waited 1.5s)
+[  5.29s] Uplink 1 finished writing (version: 1), waiting for next pass
+[  5.29s] Analyst 5 reading (readers active: 1, version: 1)
+[  5.29s] Analyst 0 reading (readers active: 2, version: 1)
+[  5.35s] Analyst 3 request is now URGENT (waited 1.5s)
+[  5.78s] Analyst 2 requesting read (ticket 9)
+[  5.82s] Analyst 4 requesting read (ticket 10)
+[  6.42s] Uplink 0 TIMEOUT on ticket 7 (waited 3.0s), backing off 2s
+[  6.42s] Analyst 3 reading (readers active: 3, version: 1)
+[  6.56s] Analyst 5 reading verified: CONSISTENT (version: 1)
+[  6.56s] Analyst 5 finished reading, idle
+[  6.56s] Analyst 2 reading (readers active: 3, version: 1)
+[  6.99s] Analyst 1 requesting read (ticket 11)
+[  7.22s] Analyst 0 reading verified: CONSISTENT (version: 1)
+[  7.22s] Analyst 0 finished reading, idle
+[  7.22s] Analyst 4 reading (readers active: 3, version: 1)
+[  7.75s] Analyst 2 reading verified: CONSISTENT (version: 1)
+[  7.75s] Analyst 2 finished reading, idle
+[  7.75s] Analyst 1 reading (readers active: 3, version: 1)
+[  7.86s] Analyst 3 reading verified: CONSISTENT (version: 1)
+[  7.86s] Analyst 3 finished reading, idle
+[  8.42s] Uplink 0 requesting write (ticket 12)
+[  8.45s] Analyst 4 reading verified: CONSISTENT (version: 1)
+[  8.45s] Analyst 4 finished reading, idle
+[  9.36s] Analyst 3 requesting read (ticket 13)
+[  9.65s] Analyst 1 reading verified: CONSISTENT (version: 1)
+[  9.65s] Analyst 1 finished reading, idle
+[  9.65s] Uplink 0 writing (version: 1 -> 2)
+[  9.74s] Analyst 5 requesting read (ticket 14)
+[ 10.08s] Uplink 1 requesting write (ticket 15)
+[ 10.73s] Analyst 0 requesting read (ticket 16)
+[ 10.86s] Analyst 3 request is now URGENT (waited 1.5s)
+[ 10.93s] Analyst 2 requesting read (ticket 17)
+[ 11.24s] Analyst 5 request is now URGENT (waited 1.5s)
+[ 11.58s] Uplink 1 request is now URGENT (waited 1.5s)
+[ 11.60s] Uplink 0 finished writing (version: 2), waiting for next pass
+[ 11.60s] Analyst 3 reading (readers active: 1, version: 2)
+[ 11.60s] Analyst 5 reading (readers active: 2, version: 2)
+[ 11.89s] Analyst 4 requesting read (ticket 18)
+[ 12.00s] Archiver 0 requesting exclusive access (ticket 19)
+[ 12.16s] Analyst 1 requesting read (ticket 20)
+[ 12.23s] Analyst 0 request is now URGENT (waited 1.5s)
+[ 12.43s] Analyst 2 request is now URGENT (waited 1.5s)
+[ 13.08s] Uplink 1 TIMEOUT on ticket 15 (waited 3.0s), backing off 2s
+[ 13.08s] Analyst 0 reading (readers active: 3, version: 2)
+[ 13.12s] Analyst 5 reading verified: CONSISTENT (version: 2)
+[ 13.12s] Analyst 5 finished reading, idle
+[ 13.12s] Analyst 2 reading (readers active: 3, version: 2)
+[ 13.39s] Analyst 4 request is now URGENT (waited 1.5s)
+[ 13.50s] Archiver 0 request is now URGENT (waited 1.5s)
+[ 13.55s] Analyst 3 reading verified: CONSISTENT (version: 2)
+[ 13.55s] Analyst 3 finished reading, idle
+[ 13.55s] Analyst 4 reading (readers active: 3, version: 2)
+[ 13.66s] Analyst 1 request is now URGENT (waited 1.5s)
+[ 14.50s] Analyst 2 reading verified: CONSISTENT (version: 2)
+[ 14.50s] Analyst 2 finished reading, idle
+[ 14.69s] Analyst 0 reading verified: CONSISTENT (version: 2)
+[ 14.69s] Analyst 0 finished reading, idle
+[ 14.94s] Uplink 0 requesting write (ticket 21)
+[ 15.00s] Archiver 0 TIMEOUT on ticket 19 (waited 3.0s), backing off 2s
+[ 15.00s] Analyst 1 reading (readers active: 2, version: 2)
+[ 15.08s] Uplink 1 requesting write (ticket 22)
+[ 15.46s] Analyst 5 requesting read (ticket 23)
+[ 15.55s] Analyst 4 reading verified: CONSISTENT (version: 2)
+[ 15.55s] Analyst 4 finished reading, idle
+[ 16.32s] Analyst 1 reading verified: CONSISTENT (version: 2)
+[ 16.32s] Analyst 1 finished reading, idle
+[ 16.32s] Uplink 0 writing (version: 2 -> 3)
+[ 16.53s] Analyst 2 requesting read (ticket 24)
+[ 16.58s] Uplink 1 request is now URGENT (waited 1.5s)
+[ 16.62s] Analyst 4 requesting read (ticket 25)
+[ 16.96s] Analyst 5 request is now URGENT (waited 1.5s)
+[ 17.00s] Archiver 0 requesting exclusive access (ticket 26)
+[ 17.37s] Analyst 3 requesting read (ticket 27)
+[ 17.59s] Analyst 0 requesting read (ticket 28)
+[ 17.59s] Uplink 0 finished writing (version: 3), waiting for next pass
+[ 17.59s] Uplink 1 writing (version: 3 -> 4)
+[ 18.03s] Analyst 2 request is now URGENT (waited 1.5s)
+[ 18.12s] Analyst 4 request is now URGENT (waited 1.5s)
+[ 18.46s] Analyst 5 TIMEOUT on ticket 23 (waited 3.0s), backing off 2s
+[ 18.50s] Archiver 0 request is now URGENT (waited 1.5s)
+[ 18.87s] Analyst 3 request is now URGENT (waited 1.5s)
+[ 18.96s] Analyst 1 requesting read (ticket 29)
+[ 19.09s] Analyst 0 request is now URGENT (waited 1.5s)
+[ 19.15s] Uplink 1 finished writing (version: 4), waiting for next pass
+[ 19.15s] Analyst 2 reading (readers active: 1, version: 4)
+[ 19.15s] Analyst 4 reading (readers active: 2, version: 4)
+[ 20.00s] Archiver 0 TIMEOUT on ticket 26 (waited 3.0s), backing off 2s
+[ 20.00s] Analyst 3 reading (readers active: 3, version: 4)
+[ 20.46s] Analyst 5 requesting read (ticket 30)
+[ 20.46s] Analyst 1 request is now URGENT (waited 1.5s)
+[ 20.54s] Uplink 0 requesting write (ticket 31)
+[ 20.59s] Analyst 0 TIMEOUT on ticket 28 (waited 3.0s), backing off 2s
+[ 20.70s] Analyst 4 reading verified: CONSISTENT (version: 4)
+[ 20.70s] Analyst 4 finished reading, idle
+[ 20.70s] Analyst 1 reading (readers active: 3, version: 4)
+[ 20.86s] Analyst 2 reading verified: CONSISTENT (version: 4)
+[ 20.86s] Analyst 2 finished reading, idle
+[ 20.86s] Analyst 5 reading (readers active: 3, version: 4)
+[ 21.44s] Analyst 3 reading verified: CONSISTENT (version: 4)
+[ 21.44s] Analyst 3 finished reading, idle
+[ 21.76s] Analyst 4 requesting read (ticket 32)
+[ 21.89s] Analyst 1 reading verified: CONSISTENT (version: 4)
+[ 21.89s] Analyst 1 finished reading, idle
+[ 21.92s] Analyst 5 reading verified: CONSISTENT (version: 4)
+[ 21.92s] Analyst 5 finished reading, idle
+[ 21.92s] Uplink 0 writing (version: 4 -> 5)
+[ 22.00s] Archiver 0 requesting exclusive access (ticket 33)
+[ 22.59s] Analyst 0 requesting read (ticket 34)
+[ 22.74s] Uplink 1 requesting write (ticket 35)
+[ 22.85s] Analyst 2 requesting read (ticket 36)
+[ 23.26s] Analyst 4 request is now URGENT (waited 1.5s)
+[ 23.50s] Archiver 0 request is now URGENT (waited 1.5s)
+[ 23.52s] Uplink 0 finished writing (version: 5), waiting for next pass
+[ 23.52s] Analyst 4 reading (readers active: 1, version: 5)
+[ 24.09s] Analyst 0 request is now URGENT (waited 1.5s)
+[ 24.15s] Analyst 5 requesting read (ticket 37)
+[ 24.24s] Uplink 1 request is now URGENT (waited 1.5s)
+[ 24.35s] Analyst 2 request is now URGENT (waited 1.5s)
+[ 24.36s] Analyst 3 requesting read (ticket 38)
+[ 24.42s] Analyst 1 requesting read (ticket 39)
+[ 25.00s] Archiver 0 TIMEOUT on ticket 33 (waited 3.0s), backing off 2s
+[ 25.00s] Analyst 0 reading (readers active: 2, version: 5)
+[ 25.17s] Analyst 4 reading verified: CONSISTENT (version: 5)
+[ 25.17s] Analyst 4 finished reading, idle
+[ 25.65s] Analyst 5 request is now URGENT (waited 1.5s)
+[ 25.74s] Uplink 1 TIMEOUT on ticket 35 (waited 3.0s), backing off 2s
+[ 25.74s] Analyst 2 reading (readers active: 2, version: 5)
+[ 25.74s] Analyst 5 reading (readers active: 3, version: 5)
+[ 25.86s] Analyst 3 request is now URGENT (waited 1.5s)
+[ 25.92s] Analyst 1 request is now URGENT (waited 1.5s)
+[ 26.23s] Analyst 0 reading verified: CONSISTENT (version: 5)
+[ 26.24s] Analyst 0 finished reading, idle
+[ 26.24s] Analyst 3 reading (readers active: 3, version: 5)
+[ 27.01s] Archiver 0 requesting exclusive access (ticket 40)
+[ 27.11s] Analyst 5 reading verified: CONSISTENT (version: 5)
+[ 27.11s] Analyst 5 finished reading, idle
+[ 27.11s] Analyst 1 reading (readers active: 3, version: 5)
+[ 27.13s] Analyst 2 reading verified: CONSISTENT (version: 5)
+[ 27.13s] Analyst 2 finished reading, idle
+[ 27.74s] Uplink 1 requesting write (ticket 41)
+[ 27.76s] Analyst 3 reading verified: CONSISTENT (version: 5)
+[ 27.76s] Analyst 3 finished reading, idle
+[ 28.11s] Uplink 0 requesting write (ticket 42)
+[ 28.12s] Analyst 1 reading verified: CONSISTENT (version: 5)
+[ 28.12s] Analyst 1 finished reading, idle
+[ 28.12s] Archiver 0 archiving snapshot (version: 5)
+[ 28.66s] Analyst 2 requesting read (ticket 43)
+[ 28.90s] Analyst 4 requesting read (ticket 44)
+[ 29.25s] Uplink 1 request is now URGENT (waited 1.5s)
+[ 29.61s] Uplink 0 request is now URGENT (waited 1.5s)
+[ 29.66s] Analyst 0 requesting read (ticket 45)
+[ 29.78s] Analyst 5 requesting read (ticket 46)
+[ 30.00s] Shutdown requested, waiting for threads
+[ 30.00s] Analyst 2 abandons ticket 43 for shutdown
+[ 30.00s] Analyst 2 finished
+[ 30.00s] Analyst 4 abandons ticket 44 for shutdown
+[ 30.00s] Analyst 4 finished
+[ 30.00s] Analyst 0 abandons ticket 45 for shutdown
+[ 30.00s] Analyst 0 finished
+[ 30.11s] Analyst 5 abandons ticket 46 for shutdown
+[ 30.11s] Analyst 5 finished
+[ 30.11s] Uplink 1 abandons ticket 41 for shutdown
+[ 30.11s] Uplink 1 finished
+[ 30.11s] Uplink 0 abandons ticket 42 for shutdown
+[ 30.11s] Uplink 0 finished
+[ 30.11s] Analyst 3 finished
+[ 30.11s] Analyst 1 finished
+[ 30.12s] Archiver 0 snapshot verified: CONSISTENT (version: 5)
+[ 30.12s] Archiver 0 finished, idle until the next 12 s mark
+[ 30.12s] Archiver 0 finished
+[ 30.12s] All threads joined
+
+Thread     ID  Accesses  MaxWait(s)  Timeouts
+Analyst     0         3        3.00         1
+Analyst     1         5        2.84         0
+Analyst     2         5        2.89         0
+Analyst     3         4        2.63         0
+Analyst     4         5        2.54         0
+Analyst     5         4        3.00         1
+Uplink      0         3        3.00         1
+Uplink      1         2        3.00         2
+Archiver    0         1        3.00         3
+
+CORRUPT detections: 0
+Final version: 5

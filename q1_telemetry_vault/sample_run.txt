@@ -1,0 +1,301 @@
+# ./vault 60 42 on the course VM (Ubuntu 24.04, kernel 6.14, 1 vCPU)
+Telemetry vault: 6 analysts (max 3 readers), 2 uplinks, 1 archiver, 60 s, seed 42
+[  0.00s] Analyst 0 idle
+[  0.00s] Analyst 1 idle
+[  0.00s] Analyst 2 idle
+[  0.00s] Analyst 3 idle
+[  0.00s] Analyst 4 idle
+[  0.00s] Analyst 5 idle
+[  0.00s] Uplink 0 idle
+[  0.00s] Uplink 1 idle
+[  0.00s] Archiver 0 idle
+[  1.24s] Analyst 0 requesting read (ticket 1)
+[  1.24s] Analyst 0 reading (readers active: 1, version: 0)
+[  1.93s] Analyst 1 requesting read (ticket 2)
+[  1.93s] Analyst 1 reading (readers active: 2, version: 0)
+[  2.18s] Uplink 0 requesting write (ticket 3)
+[  2.27s] Analyst 5 requesting read (ticket 4)
+[  2.61s] Analyst 3 requesting read (ticket 5)
+[  2.64s] Analyst 2 requesting read (ticket 6)
+[  3.11s] Analyst 0 reading verified: CONSISTENT (version: 0)
+[  3.11s] Analyst 0 finished reading, idle
+[  3.19s] Analyst 1 reading verified: CONSISTENT (version: 0)
+[  3.19s] Analyst 1 finished reading, idle
+[  3.19s] Uplink 0 writing (version: 0 -> 1)
+[  3.53s] Analyst 4 requesting read (ticket 7)
+[  4.13s] Uplink 1 requesting write (ticket 8)
+[  4.57s] Uplink 0 finished writing (version: 1), waiting for next pass
+[  4.58s] Analyst 5 reading (readers active: 1, version: 1)
+[  4.58s] Analyst 3 reading (readers active: 2, version: 1)
+[  4.58s] Analyst 2 reading (readers active: 3, version: 1)
+[  5.73s] Analyst 5 reading verified: CONSISTENT (version: 1)
+[  5.73s] Analyst 5 finished reading, idle
+[  5.73s] Analyst 4 reading (readers active: 3, version: 1)
+[  6.05s] Analyst 2 reading verified: CONSISTENT (version: 1)
+[  6.05s] Analyst 2 finished reading, idle
+[  6.11s] Analyst 1 requesting read (ticket 9)
+[  6.43s] Analyst 3 reading verified: CONSISTENT (version: 1)
+[  6.43s] Analyst 3 finished reading, idle
+[  6.87s] Analyst 0 requesting read (ticket 10)
+[  6.91s] Analyst 5 requesting read (ticket 11)
+[  7.42s] Analyst 2 requesting read (ticket 12)
+[  7.51s] Analyst 4 reading verified: CONSISTENT (version: 1)
+[  7.51s] Analyst 4 finished reading, idle
+[  7.51s] Uplink 1 writing (version: 1 -> 2)
+[  8.92s] Uplink 0 requesting write (ticket 13)
+[  9.27s] Uplink 1 finished writing (version: 2), waiting for next pass
+[  9.27s] Analyst 1 reading (readers active: 1, version: 2)
+[  9.27s] Analyst 0 reading (readers active: 2, version: 2)
+[  9.27s] Analyst 5 reading (readers active: 3, version: 2)
+[  9.96s] Analyst 3 requesting read (ticket 14)
+[ 10.40s] Analyst 0 reading verified: CONSISTENT (version: 2)
+[ 10.40s] Analyst 0 finished reading, idle
+[ 10.40s] Analyst 2 reading (readers active: 3, version: 2)
+[ 11.09s] Analyst 5 reading verified: CONSISTENT (version: 2)
+[ 11.09s] Analyst 5 finished reading, idle
+[ 11.16s] Analyst 1 reading verified: CONSISTENT (version: 2)
+[ 11.16s] Analyst 1 finished reading, idle
+[ 11.26s] Analyst 4 requesting read (ticket 15)
+[ 11.58s] Analyst 2 reading verified: CONSISTENT (version: 2)
+[ 11.58s] Analyst 2 finished reading, idle
+[ 11.58s] Uplink 0 writing (version: 2 -> 3)
+[ 12.00s] Archiver 0 requesting exclusive access (ticket 16)
+[ 12.68s] Uplink 0 finished writing (version: 3), waiting for next pass
+[ 12.68s] Analyst 3 reading (readers active: 1, version: 3)
+[ 12.68s] Analyst 4 reading (readers active: 2, version: 3)
+[ 13.11s] Analyst 0 requesting read (ticket 17)
+[ 13.20s] Analyst 5 requesting read (ticket 18)
+[ 13.48s] Analyst 1 requesting read (ticket 19)
+[ 13.83s] Uplink 1 requesting write (ticket 20)
+[ 14.13s] Analyst 3 reading verified: CONSISTENT (version: 3)
+[ 14.13s] Analyst 3 finished reading, idle
+[ 14.20s] Analyst 4 reading verified: CONSISTENT (version: 3)
+[ 14.20s] Analyst 4 finished reading, idle
+[ 14.20s] Archiver 0 archiving snapshot (version: 3)
+[ 14.53s] Analyst 2 requesting read (ticket 21)
+[ 15.99s] Analyst 3 requesting read (ticket 22)
+[ 16.20s] Archiver 0 snapshot verified: CONSISTENT (version: 3)
+[ 16.20s] Archiver 0 finished, idle until the next 12 s mark
+[ 16.20s] Analyst 0 reading (readers active: 1, version: 3)
+[ 16.20s] Analyst 5 reading (readers active: 2, version: 3)
+[ 16.20s] Analyst 1 reading (readers active: 3, version: 3)
+[ 16.46s] Uplink 0 requesting write (ticket 23)
+[ 16.70s] Analyst 4 requesting read (ticket 24)
+[ 17.68s] Analyst 0 reading verified: CONSISTENT (version: 3)
+[ 17.68s] Analyst 0 finished reading, idle
+[ 17.76s] Analyst 1 reading verified: CONSISTENT (version: 3)
+[ 17.76s] Analyst 1 finished reading, idle
+[ 17.83s] Uplink 1 request is now URGENT (waited 4.0s)
+[ 17.98s] Analyst 5 reading verified: CONSISTENT (version: 3)
+[ 17.98s] Analyst 5 finished reading, idle
+[ 17.98s] Uplink 1 writing (version: 3 -> 4)
+[ 18.54s] Analyst 2 request is now URGENT (waited 4.0s)
+[ 19.84s] Uplink 1 finished writing (version: 4), waiting for next pass
+[ 19.84s] Analyst 2 reading (readers active: 1, version: 4)
+[ 19.84s] Analyst 3 reading (readers active: 2, version: 4)
+[ 20.41s] Analyst 5 requesting read (ticket 25)
+[ 20.46s] Uplink 0 request is now URGENT (waited 4.0s)
+[ 20.60s] Analyst 1 requesting read (ticket 26)
+[ 20.70s] Analyst 4 request is now URGENT (waited 4.0s)
+[ 20.94s] Analyst 2 reading verified: CONSISTENT (version: 4)
+[ 20.94s] Analyst 2 finished reading, idle
+[ 21.00s] Analyst 3 reading verified: CONSISTENT (version: 4)
+[ 21.00s] Analyst 3 finished reading, idle
+[ 21.00s] Uplink 0 writing (version: 4 -> 5)
+[ 21.10s] Analyst 0 requesting read (ticket 27)
+[ 22.13s] Analyst 3 requesting read (ticket 28)
+[ 22.31s] Uplink 0 finished writing (version: 5), waiting for next pass
+[ 22.31s] Analyst 4 reading (readers active: 1, version: 5)
+[ 22.31s] Analyst 5 reading (readers active: 2, version: 5)
+[ 22.31s] Analyst 1 reading (readers active: 3, version: 5)
+[ 22.49s] Uplink 1 requesting write (ticket 29)
+[ 23.40s] Analyst 5 reading verified: CONSISTENT (version: 5)
+[ 23.40s] Analyst 5 finished reading, idle
+[ 23.40s] Analyst 0 reading (readers active: 3, version: 5)
+[ 23.91s] Analyst 2 requesting read (ticket 30)
+[ 24.00s] Archiver 0 requesting exclusive access (ticket 31)
+[ 24.00s] Analyst 4 reading verified: CONSISTENT (version: 5)
+[ 24.00s] Analyst 4 finished reading, idle
+[ 24.00s] Analyst 3 reading (readers active: 3, version: 5)
+[ 24.25s] Analyst 1 reading verified: CONSISTENT (version: 5)
+[ 24.25s] Analyst 1 finished reading, idle
+[ 24.65s] Analyst 5 requesting read (ticket 32)
+[ 25.05s] Analyst 0 reading verified: CONSISTENT (version: 5)
+[ 25.05s] Analyst 0 finished reading, idle
+[ 25.27s] Analyst 4 requesting read (ticket 33)
+[ 25.38s] Analyst 1 requesting read (ticket 34)
+[ 25.76s] Analyst 3 reading verified: CONSISTENT (version: 5)
+[ 25.76s] Analyst 3 finished reading, idle
+[ 25.76s] Uplink 1 writing (version: 5 -> 6)
+[ 26.90s] Uplink 0 requesting write (ticket 35)
+[ 27.13s] Uplink 1 finished writing (version: 6), waiting for next pass
+[ 27.13s] Analyst 2 reading (readers active: 1, version: 6)
+[ 28.00s] Archiver 0 request is now URGENT (waited 4.0s)
+[ 28.49s] Analyst 0 requesting read (ticket 36)
+[ 28.65s] Analyst 5 request is now URGENT (waited 4.0s)
+[ 29.09s] Analyst 2 reading verified: CONSISTENT (version: 6)
+[ 29.09s] Analyst 2 finished reading, idle
+[ 29.09s] Archiver 0 archiving snapshot (version: 6)
+[ 29.27s] Analyst 4 request is now URGENT (waited 4.0s)
+[ 29.39s] Analyst 1 request is now URGENT (waited 4.0s)
+[ 29.71s] Analyst 3 requesting read (ticket 37)
+[ 29.92s] Uplink 1 requesting write (ticket 38)
+[ 30.90s] Uplink 0 request is now URGENT (waited 4.0s)
+[ 31.09s] Archiver 0 snapshot verified: CONSISTENT (version: 6)
+[ 31.09s] Archiver 0 finished, idle until the next 12 s mark
+[ 31.09s] Analyst 5 reading (readers active: 1, version: 6)
+[ 31.09s] Analyst 4 reading (readers active: 2, version: 6)
+[ 31.09s] Analyst 1 reading (readers active: 3, version: 6)
+[ 32.20s] Analyst 4 reading verified: CONSISTENT (version: 6)
+[ 32.20s] Analyst 4 finished reading, idle
+[ 32.20s] Analyst 1 reading verified: CONSISTENT (version: 6)
+[ 32.20s] Analyst 1 finished reading, idle
+[ 32.44s] Analyst 5 reading verified: CONSISTENT (version: 6)
+[ 32.44s] Analyst 5 finished reading, idle
+[ 32.44s] Uplink 0 writing (version: 6 -> 7)
+[ 32.49s] Analyst 0 request is now URGENT (waited 4.0s)
+[ 32.66s] Analyst 2 requesting read (ticket 39)
+[ 33.71s] Analyst 1 requesting read (ticket 40)
+[ 33.71s] Analyst 3 request is now URGENT (waited 4.0s)
+[ 33.86s] Uplink 0 finished writing (version: 7), waiting for next pass
+[ 33.86s] Analyst 0 reading (readers active: 1, version: 7)
+[ 33.86s] Analyst 3 reading (readers active: 2, version: 7)
+[ 33.92s] Uplink 1 request is now URGENT (waited 4.0s)
+[ 34.89s] Analyst 5 requesting read (ticket 41)
+[ 35.04s] Analyst 4 requesting read (ticket 42)
+[ 35.48s] Analyst 3 reading verified: CONSISTENT (version: 7)
+[ 35.48s] Analyst 3 finished reading, idle
+[ 35.61s] Analyst 0 reading verified: CONSISTENT (version: 7)
+[ 35.61s] Analyst 0 finished reading, idle
+[ 35.61s] Uplink 1 writing (version: 7 -> 8)
+[ 36.00s] Archiver 0 requesting exclusive access (ticket 43)
+[ 36.66s] Analyst 2 request is now URGENT (waited 4.0s)
+[ 37.54s] Uplink 1 finished writing (version: 8), waiting for next pass
+[ 37.54s] Analyst 2 reading (readers active: 1, version: 8)
+[ 37.54s] Analyst 1 reading (readers active: 2, version: 8)
+[ 37.54s] Analyst 5 reading (readers active: 3, version: 8)
+[ 37.97s] Analyst 3 requesting read (ticket 44)
+[ 38.75s] Uplink 0 requesting write (ticket 45)
+[ 38.93s] Analyst 1 reading verified: CONSISTENT (version: 8)
+[ 38.93s] Analyst 1 finished reading, idle
+[ 38.93s] Analyst 4 reading (readers active: 3, version: 8)
+[ 39.01s] Analyst 2 reading verified: CONSISTENT (version: 8)
+[ 39.01s] Analyst 2 finished reading, idle
+[ 39.52s] Analyst 5 reading verified: CONSISTENT (version: 8)
+[ 39.52s] Analyst 5 finished reading, idle
+[ 39.56s] Analyst 0 requesting read (ticket 46)
+[ 39.94s] Analyst 1 requesting read (ticket 47)
+[ 40.00s] Archiver 0 request is now URGENT (waited 4.0s)
+[ 40.84s] Uplink 1 requesting write (ticket 48)
+[ 40.90s] Analyst 4 reading verified: CONSISTENT (version: 8)
+[ 40.90s] Analyst 4 finished reading, idle
+[ 40.90s] Archiver 0 archiving snapshot (version: 8)
+[ 41.13s] Analyst 2 requesting read (ticket 49)
+[ 41.97s] Analyst 3 request is now URGENT (waited 4.0s)
+[ 42.75s] Uplink 0 request is now URGENT (waited 4.0s)
+[ 42.90s] Archiver 0 snapshot verified: CONSISTENT (version: 8)
+[ 42.90s] Archiver 0 finished, idle until the next 12 s mark
+[ 42.90s] Analyst 3 reading (readers active: 1, version: 8)
+[ 42.94s] Analyst 4 requesting read (ticket 50)
+[ 43.47s] Analyst 5 requesting read (ticket 51)
+[ 43.56s] Analyst 0 request is now URGENT (waited 4.0s)
+[ 43.94s] Analyst 1 request is now URGENT (waited 4.0s)
+[ 44.42s] Analyst 3 reading verified: CONSISTENT (version: 8)
+[ 44.42s] Analyst 3 finished reading, idle
+[ 44.42s] Uplink 0 writing (version: 8 -> 9)
+[ 44.84s] Uplink 1 request is now URGENT (waited 4.0s)
+[ 45.13s] Analyst 2 request is now URGENT (waited 4.0s)
+[ 46.16s] Uplink 0 finished writing (version: 9), waiting for next pass
+[ 46.16s] Analyst 0 reading (readers active: 1, version: 9)
+[ 46.16s] Analyst 1 reading (readers active: 2, version: 9)
+[ 46.94s] Analyst 4 request is now URGENT (waited 4.0s)
+[ 47.29s] Analyst 1 reading verified: CONSISTENT (version: 9)
+[ 47.29s] Analyst 1 finished reading, idle
+[ 47.48s] Analyst 5 request is now URGENT (waited 4.0s)
+[ 47.56s] Analyst 0 reading verified: CONSISTENT (version: 9)
+[ 47.56s] Analyst 0 finished reading, idle
+[ 47.56s] Uplink 1 writing (version: 9 -> 10)
+[ 47.90s] Analyst 3 requesting read (ticket 52)
+[ 48.00s] Archiver 0 requesting exclusive access (ticket 53)
+[ 48.40s] Uplink 0 requesting write (ticket 54)
+[ 49.18s] Uplink 1 finished writing (version: 10), waiting for next pass
+[ 49.18s] Analyst 2 reading (readers active: 1, version: 10)
+[ 49.18s] Analyst 4 reading (readers active: 2, version: 10)
+[ 49.18s] Analyst 5 reading (readers active: 3, version: 10)
+[ 50.50s] Analyst 1 requesting read (ticket 55)
+[ 50.54s] Analyst 2 reading verified: CONSISTENT (version: 10)
+[ 50.54s] Analyst 2 finished reading, idle
+[ 50.54s] Analyst 3 reading (readers active: 3, version: 10)
+[ 50.70s] Analyst 4 reading verified: CONSISTENT (version: 10)
+[ 50.70s] Analyst 4 finished reading, idle
+[ 50.71s] Analyst 5 reading verified: CONSISTENT (version: 10)
+[ 50.71s] Analyst 5 finished reading, idle
+[ 51.40s] Analyst 0 requesting read (ticket 56)
+[ 51.90s] Analyst 2 requesting read (ticket 57)
+[ 52.00s] Archiver 0 request is now URGENT (waited 4.0s)
+[ 52.25s] Analyst 3 reading verified: CONSISTENT (version: 10)
+[ 52.25s] Analyst 3 finished reading, idle
+[ 52.25s] Archiver 0 archiving snapshot (version: 10)
+[ 52.40s] Uplink 0 request is now URGENT (waited 4.0s)
+[ 52.74s] Uplink 1 requesting write (ticket 58)
+[ 53.16s] Analyst 5 requesting read (ticket 59)
+[ 53.30s] Analyst 4 requesting read (ticket 60)
+[ 53.64s] Analyst 3 requesting read (ticket 61)
+[ 54.25s] Archiver 0 snapshot verified: CONSISTENT (version: 10)
+[ 54.25s] Archiver 0 finished, idle until the next 12 s mark
+[ 54.25s] Uplink 0 writing (version: 10 -> 11)
+[ 54.51s] Analyst 1 request is now URGENT (waited 4.0s)
+[ 55.40s] Analyst 0 request is now URGENT (waited 4.0s)
+[ 55.90s] Analyst 2 request is now URGENT (waited 4.0s)
+[ 56.20s] Uplink 0 finished writing (version: 11), waiting for next pass
+[ 56.20s] Analyst 1 reading (readers active: 1, version: 11)
+[ 56.20s] Analyst 0 reading (readers active: 2, version: 11)
+[ 56.20s] Analyst 2 reading (readers active: 3, version: 11)
+[ 56.75s] Uplink 1 request is now URGENT (waited 4.0s)
+[ 57.16s] Analyst 5 request is now URGENT (waited 4.0s)
+[ 57.23s] Analyst 2 reading verified: CONSISTENT (version: 11)
+[ 57.23s] Analyst 2 finished reading, idle
+[ 57.30s] Analyst 4 request is now URGENT (waited 4.0s)
+[ 57.42s] Analyst 0 reading verified: CONSISTENT (version: 11)
+[ 57.42s] Analyst 0 finished reading, idle
+[ 57.64s] Analyst 3 request is now URGENT (waited 4.0s)
+[ 57.70s] Analyst 1 reading verified: CONSISTENT (version: 11)
+[ 57.70s] Analyst 1 finished reading, idle
+[ 57.70s] Uplink 1 writing (version: 11 -> 12)
+[ 59.19s] Analyst 0 requesting read (ticket 62)
+[ 59.32s] Uplink 1 finished writing (version: 12), waiting for next pass
+[ 59.32s] Analyst 5 reading (readers active: 1, version: 12)
+[ 59.32s] Analyst 4 reading (readers active: 2, version: 12)
+[ 59.32s] Analyst 3 reading (readers active: 3, version: 12)
+[ 60.00s] Shutdown requested, waiting for threads
+[ 60.00s] Archiver 0 finished
+[ 60.00s] Analyst 0 abandons ticket 62 for shutdown
+[ 60.00s] Analyst 0 finished
+[ 60.00s] Uplink 0 finished
+[ 60.00s] Analyst 2 finished
+[ 60.00s] Analyst 1 finished
+[ 60.00s] Uplink 1 finished
+[ 60.95s] Analyst 4 reading verified: CONSISTENT (version: 12)
+[ 60.95s] Analyst 4 finished reading, idle
+[ 60.95s] Analyst 4 finished
+[ 61.16s] Analyst 5 reading verified: CONSISTENT (version: 12)
+[ 61.16s] Analyst 5 finished reading, idle
+[ 61.16s] Analyst 5 finished
+[ 61.18s] Analyst 3 reading verified: CONSISTENT (version: 12)
+[ 61.18s] Analyst 3 finished reading, idle
+[ 61.18s] Analyst 3 finished
+[ 61.18s] All threads joined
+
+Thread     ID  Accesses  MaxWait(s)  Timeouts
+Analyst     0         7        6.60         0
+Analyst     1         8        6.22         0
+Analyst     2         7        8.05         0
+Analyst     3         8        5.68         0
+Analyst     4         7        6.24         0
+Analyst     5         8        6.44         0
+Uplink      0         6        5.86         0
+Uplink      1         6        6.72         0
+Archiver    0         4        5.09         0
+
+CORRUPT detections: 0
+Final version: 12
