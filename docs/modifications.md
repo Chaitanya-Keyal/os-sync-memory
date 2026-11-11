@@ -51,3 +51,4 @@ top of the file).
 | Different seed | 3rd argument, `SEED` in `run_trials.sh` |
 | Swap size | `SIZE_MIB` in `swap_setup.sh` |
 | More sizes | arguments to `run_trials.sh`; add them to `PART_A_SIZES` in `plot.py` for the ticks |
+| Sizes in the full run, or fewer warm-ups | the two `for s in ...` loops and `warm()` in `run_all.sh` |

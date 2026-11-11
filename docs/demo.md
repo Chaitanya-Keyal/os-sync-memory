@@ -92,6 +92,17 @@ Each trial takes 10-30 s. Show `results.txt` and the three PNGs in
 `results/`, and explain why the hot pattern starts slower (the hot pages are
 the oldest, so they are in swap first).
 
+For Part B, show the Part B table and findings in `results.txt`. A live USB
+demo needs the pen drive, the stock 6.8 kernel and the USB filter (steps in
+`03-memory-swap.md`). It is only worth it at 2048 MiB, where the USB trial
+takes about a minute:
+
+```bash
+sudo ./swap_setup.sh usb /dev/sdb             # type YES
+./memswap 2048 uniform 42 usb                 # ~46 s init, ~8 s per pass vs ~4 s / ~1 s on the SSD
+sudo ./swap_setup.sh off
+```
+
 ## If something goes wrong
 
 * `prio_chain` says "run as root": use `sudo`.
