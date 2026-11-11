@@ -156,6 +156,6 @@ python3 plot.py                             # tables.txt and the three Part A pl
 * Part B: the USB device is a SanDisk pen drive passed through to the VM.
   512-1536 MiB never swap, so both backings look the same. At 2048 MiB,
   added to show the effect, initialization is 8-12x slower on USB and each
-  major fault 4-9x slower. Both parts ran on the stock 6.8 kernel (the
+  major fault 3-8x slower. Both parts ran on the stock 6.8 kernel (the
   custom kernel has no USB storage driver). Setup steps are in
   `docs/03-memory-swap.md`.

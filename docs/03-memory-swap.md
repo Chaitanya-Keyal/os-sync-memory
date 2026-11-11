@@ -70,7 +70,7 @@ within a few pages.
   `results/trials.csv`.
 * `run_all.sh /dev/sdX`: the whole measurement behind `results.txt`: Part A
   on internal swap, Part B on USB swap (512-1536 plus 2048 MiB), swap off.
-  Before every size it runs one throwaway 1500 MiB trial (see the host note
+  Before every size it runs two throwaway 1500 MiB trials (see the host note
   below).
 * `plot.py`: reads the CSV and writes `results/tables.txt` (Part A tables
   and the Part B comparison) and the three Part A plots.
@@ -84,8 +84,9 @@ See `q3_memswap/results.txt` for the tables and findings. In short:
   about 1,700 (uniform) to 8,400 (hot) major faults: 96-152 µs per lookup
   for uniform, thousands of times slower. At 2560 MiB it is about 3,500
   faults per pass for uniform.
-* One major fault costs about 0.5-0.9 ms on the internal SSD (pass 1 can be
-  dearer while write-back from initialization is still going on).
+* One major fault costs about 0.5-0.9 ms on the internal SSD. The 2048 MiB
+  hot pass 1 is an exception at 1.66 ms per fault; it repeated in every run
+  and we have not found the cause.
 * **Hot is slower than uniform at first, and improves each pass.** The hot
   region is the first 10% of pages, which were written first, so they are
   the oldest and get swapped out first. After initialization the whole hot
@@ -137,7 +138,7 @@ memory the VM has not used recently when Windows is short of RAM. A first
 run made while a browser was using several GB showed the first trial of each
 size 5-8× slower than an identical second trial, with no swapping at all
 inside the VM. Close the browser and other large apps before measuring.
-`run_all.sh` also runs a throwaway 1500 MiB trial before every size to pull
+`run_all.sh` also runs two throwaway 1500 MiB trials before every size to pull
 the VM's memory back into host RAM. Fault and swap counts come from the
 guest kernel and are not affected; only times are.
 
@@ -160,7 +161,7 @@ guest kernel and are not affected; only times are.
   | cost per major fault | 0.5-0.9 ms | 2.1-4.5 ms |
 
 * The pen drive writes swap at only about 8-11 MiB/s, so initialization is
-  8-12× slower, and each fault (one random 4 KiB read) is 4-9× slower.
+  8-12× slower, and each fault (one random 4 KiB read) is 3-8× slower.
 * Fault counts are about the same on both: the program decides how many
   pages miss; the device only decides how long each miss takes.
 

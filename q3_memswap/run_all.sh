@@ -7,7 +7,7 @@
 # MiB plus 2048 MiB), then swap off. Asks once before erasing the USB disk.
 # Old results/raw and results/trials.csv are replaced.
 #
-# Before every size, one throwaway 1500 MiB trial touches most of the VM's
+# Before every size, two throwaway 1500 MiB trials touch most of the VM's
 # RAM. On a busy Windows host, Hyper-V pages out guest memory the VM has not
 # used for a while, and the first trial after that would be slowed by the
 # host paging it back in, which has nothing to do with the swap backing.
@@ -19,7 +19,10 @@ if [ "$(id -u)" -ne 0 ] || [ ! -b "$1" ]; then
 fi
 usb=$1
 
-warm() { ./memswap 1500 uniform 42 warmup >/dev/null; }
+warm() {
+    ./memswap 1500 uniform 42 warmup >/dev/null
+    ./memswap 1500 uniform 42 warmup >/dev/null
+}
 
 rm -rf results/raw results/trials.csv
 ./swap_setup.sh internal || exit 1

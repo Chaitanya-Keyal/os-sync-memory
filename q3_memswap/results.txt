@@ -31,8 +31,9 @@ Host note. The VM runs under Hyper-V, which pages out guest RAM the VM has
 not used for a while when the Windows host is short of memory. An earlier
 run, made while a browser was using several GB, showed the first trial of
 each size 5-8x slower than an identical second trial even with no swapping
-in the VM. So for this run the host had only the VM and a terminal open,
-and run_all.sh does a throwaway 1500 MiB trial before every size so that
+in the VM. So for this run no browser or other large app was open on the
+host (about 1 GB of host RAM stayed free, with the VM fully resident), and
+run_all.sh does two throwaway 1500 MiB trials before every size so that
 all guest RAM is back in host RAM before measuring. The guest-side counters
 (major faults, swap KiB) are not affected by host paging either way; only
 times are.
@@ -89,7 +90,7 @@ Initialization and deallocation (ms / major faults / swap out KiB)
   usb      2048 hot      init  34463.1 ms   7 maj  385716 KiB out   free  1147.2 ms  384 maj
 
 Findings (Part A)
-1. The transition lies between 1536 and 2048 MiB. About 1.65-1.7 GiB of
+1. The transition lies between 1536 and 2048 MiB. About 1.65 GiB of
    the allocation can stay in RAM. Up to 1536 MiB everything stays
    resident: no major faults, no swap traffic, lookups cost 18-56 ns
    (cache and TLB misses only). At 2048 MiB the initialization already
@@ -98,16 +99,20 @@ Findings (Part A)
    1536 MiB.
 2. A major fault costs about 0.5-0.9 ms from the second pass on (e.g.
    1723 ms / 3441 faults in pass 3 at 2560 MiB uniform): one 4 KiB read
-   from the swap file through VirtualBox's virtual disk. The first pass is
-   often dearer per fault (1.08 ms at 2560 uniform, 1.66 ms at 2048 hot):
-   it also has the most swap-out (45-71 MiB), and its reads likely queue
-   behind those writes. Swap-in KiB is 4 x the major faults in every pass (to
+   from the swap file through VirtualBox's virtual disk. Two first passes
+   are dearer per fault: 1.08 ms at 2560 uniform and 1.66 ms at 2048 hot.
+   The 2048 hot pass 1 is slower than the 2560 hot pass 1 in every run we
+   made (also on the 6.14 kernel, and in an earlier 6.8 run), even though
+   it has fewer faults, which is why the hot pass-1 curve in the access
+   time plot dips from 2048 to 2560. Swap-out volume does not explain it
+   (2560 hot pass 1 writes more, 71 MiB, at 0.51 ms per fault); we have not
+   found the cause. Swap-in KiB is 4 x the major faults in every pass (to
    within a few pages of background activity), so every major fault was
    one page read from swap and readahead brought in nothing extra for
    these random patterns.
 3. Uniform faults match the share of the allocation that is not in RAM:
    about 1,700 of 10,000 lookups (17%) at 2048 MiB and 3,400-3,565 (34-36%)
-   at 2560 MiB, close to (size - ~1.68 GiB) / size = 17% and 34%. Uniform
+   at 2560 MiB, close to (size - ~1.65 GiB) / size = 17.5% and 34%. Uniform
    has no reuse, so pass 5 has as many faults as pass 1: each page swapped
    in pushes another one out, and the resident share stays the same.
 4. The hot region is slower than uniform here, the opposite of what one
@@ -190,8 +195,9 @@ Findings (Part B)
 4. Each major fault costs 2.1-4.5 ms on USB against 0.5-0.9 ms on the
    internal SSD (from pass 2 on). Uniform pass times: pass 1 8.1 s vs 1.3 s,
    pass 5 8.3 s vs 1.0 s (6-9x). Hot: pass 1 18.7 s vs 14.0 s, pass 5
-   8.5 s vs 2.1 s (4x). Hot pass 1 is the closest (1.3x) because on the
-   internal SSD that pass was unusually slow per fault (Part A finding 2).
+   8.5 s vs 2.1 s (4x). Per fault, matching passes differ by 3-8x. Hot
+   pass 1 is the exception (1.3x) because on the internal SSD that pass was
+   unusually slow per fault (Part A finding 2).
 5. On USB the hot pattern's faults are cheaper (2.1-2.7 ms) than the
    uniform pattern's (2.6-4.5 ms). The hot region was swapped out together
    early in initialization, so it occupies one ~200 MiB stretch of the swap
@@ -203,11 +209,11 @@ Findings (Part B)
    1864-2075 USB; hot 8395 -> 4242 vs 7889 -> 3984), as expected: the
    program, seed and RAM are the same, and only the cost of each fault
    changes. The small differences come from slightly different reclaim
-   timing (USB initialization swapped out 397 MiB instead of 347 MiB).
+   timing (USB initialization swapped out 388 MiB instead of 339 MiB).
    Deallocation is also slower on USB (1.1-2.0 s vs 0.3-0.6 s) because
    its 380-550 major faults are USB reads.
 7. Summary: once the working set exceeds RAM, every lookup that misses
    costs a disk read, which makes it thousands of times slower than a RAM
-   access even on an NVMe SSD, and a USB pen drive adds another 4-9x on
-   top. The swap device only matters when there is memory pressure, and
+   access even on an NVMe SSD, and a USB pen drive makes each of those
+   reads another 3-8x slower. The swap device only matters when there is memory pressure, and
    locality only helps once the hot pages have been brought back in.

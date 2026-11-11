@@ -58,7 +58,7 @@ uniform, 0.5-0.9 ms each). The hot region is the oldest memory, so it is
 swapped out first and only warms up slowly, pass by pass. On USB swap
 (a SanDisk pen drive passed through to the VM) 512-1536 MiB look the same as
 on the SSD because nothing swaps; at 2048 MiB initialization is 8-12× slower
-and each fault 4-9× slower (2.1-4.5 ms), with about the same fault counts.
+and each fault 3-8× slower (2.1-4.5 ms), with about the same fault counts.
 
 ## Likely questions
 
@@ -80,6 +80,7 @@ and each fault 4-9× slower (2.1-4.5 ms), with about the same fault counts.
 | Why is there no USB vs SSD difference at 512-1536 MiB? | Nothing is swapped: zero major faults and zero swap traffic on both, so the swap device is never touched. |
 | Why do the fault counts barely change on USB? | The program and RAM decide which pages miss; the device only decides how long each miss takes. |
 | Why did you also run 2048 MiB on USB? | 1536 never swaps, so it cannot show the backing's effect. 2048 is the smallest size that swaps during the passes. |
+| Why is 2048 MiB hot pass 1 slower than 2560 MiB hot pass 1? | It repeated in every run (both kernels), with fewer faults but 1.66 ms per fault instead of 0.51. Swap-out volume does not explain it; we have not found the cause. Say so rather than guess. |
 | Why the stock 6.8 kernel for Problem 3? | The custom 6.14 kernel has no USB storage driver. Both backings were measured on 6.8 so the VM settings were identical. |
 | Why a warm-up trial before each size? | Hyper-V pages out idle guest RAM when Windows is short of memory; the first trial would otherwise include host paging. |
 | Why is allocation so fast? | `mmap` only reserves addresses; frames come on first touch, i.e. during initialization. |
