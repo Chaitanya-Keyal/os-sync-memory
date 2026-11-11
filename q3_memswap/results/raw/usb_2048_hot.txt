@@ -1,0 +1,16 @@
+# 2026-11-11T17:17:01+00:00 kernel 6.8.0-146-generic, 1 CPU, 1968 MiB RAM
+# swap: /dev/sdb 4G
+2048 MiB | hot | usb swap | seed 42
+5 passes, 10000 lookups each; page size 4096 B, 524288 pages, hot region 52428 pages; swap traffic is VM-wide
+
+Phase              Time (ms)    Major   In (KiB)  Out (KiB)   Checksum
+allocation            27.900        0          0          0          -
+initialization     34463.110        7         88     385716          -
+access_1           18657.287     7889      31556      41748    1269632
+access_2           16571.598     6656      26624      13580    1273200
+access_3           14124.183     5670      22680      27792    1273746
+access_4           13114.630     4819      19284      27700    1270039
+access_5            8522.883     3984      15940          0    1283212
+deallocation        1147.223      384       8208          0          -
+
+Completed: all 5 checksums verified.

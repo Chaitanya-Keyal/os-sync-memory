@@ -1,18 +1,38 @@
 PART A (internal SSD swap): average access time per lookup (µs) = pass time / 10,000
  size MiB  uniform p1  uniform p5      hot p1      hot p5
-      512       0.044       0.020       0.155       0.015
-     1024       0.047       0.026       0.021       0.017
-     1536       0.052       0.074       0.035       0.016
-     2048     123.781     118.495     786.239     217.511
-     2560     250.964     174.480     557.937     317.680
+      512       0.036       0.025       0.053       0.025
+     1024       0.029       0.023       0.041       0.021
+     1536       0.029       0.056       0.022       0.018
+     2048     133.644      95.566    1395.348     213.140
+     2560     384.620     198.153     447.152     272.274
 
 PART A (internal SSD swap): major page faults during the pass
  size MiB  uniform p1  uniform p5      hot p1      hot p5
       512           0           0           0           0
      1024           0           0           0           0
      1536           0           0           0           0
-     2048        2163        2141        8426        4235
-     2560        3858        3661        8688        5113
+     2048        1674        1710        8395        4242
+     2560        3565        3422        8725        5125
 
 PART B: internal SSD vs USB swap (same sizes, patterns, passes; seed 42)
-  (no USB trials in the CSV yet)
+ size pattern  backing     init ms init maj   init in/out KiB     p1 ms  p1 maj   p1 in/out KiB     p5 ms  p5 maj   p5 in/out KiB
+  512 uniform  internal      565.3        0               0/0       0.4       0             0/0       0.3       0             0/0
+  512 uniform  usb           255.4        0               0/0       0.3       0             0/0       0.2       0             0/0
+  512 hot      internal      265.7        0               0/0       0.5       0             0/0       0.2       0             0/0
+  512 hot      usb           281.5        0               0/0       0.2       0             0/0       0.2       0             0/0
+
+ 1024 uniform  internal      568.1        0               0/0       0.3       0             0/0       0.2       0             0/0
+ 1024 uniform  usb           577.2        0               0/0       0.5       0             0/0       0.2       0             0/0
+ 1024 hot      internal      661.0        0               0/0       0.4       0             0/0       0.2       0             0/0
+ 1024 hot      usb           538.8        0               0/0       0.2       0             0/0       0.2       0             0/0
+
+ 1536 uniform  internal      830.3        0               0/0       0.3       0             0/0       0.6       0             0/0
+ 1536 uniform  usb           852.6        0               0/0       0.3       0             0/0       2.5       0             0/0
+ 1536 hot      internal     1373.9        0               0/0       0.2       0             0/0       0.2       0             0/0
+ 1536 hot      usb           872.6        0               0/0       0.4       0             0/0       0.2       0             0/0
+
+ 2048 uniform  internal     3739.6        6        124/347440    1336.4    1674      6724/46560     955.7    1710       6840/2392
+ 2048 uniform  usb         46481.2        7        120/397464    8053.9    2061      8260/52464    8306.6    1864          7456/0
+ 2048 hot      internal     4441.6        7         92/348060   13953.5    8395     33628/54624    2131.4    4242     17004/16352
+ 2048 hot      usb         34463.1        7         88/385716   18657.3    7889     31556/41748    8522.9    3984         15940/0
+
