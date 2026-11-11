@@ -1,0 +1,121 @@
+CS F372 Assignment 3 - Problem 3 results
+========================================
+
+Setup
+-----
+VM: Ubuntu 24.04, kernel 6.14.0-forkguard, VirtualBox 1 vCPU, 2048 MiB RAM
+(free reports 1976 MiB total, about 330 MiB of it used by the system when
+idle). Page size 4096 B.
+Swap: exactly one backing active per trial (checked by run_trials.sh),
+4 GiB each. zswap disabled, no zram (swap_setup.sh does both).
+  internal  /swapfile-a3, a 4 GiB swap file on the VM's root virtual disk,
+            whose image lives on the host's internal NVMe SSD
+  usb       a 4 GiB swap area on an external USB device (Part B)
+Program: memswap, seed 42, 5 passes x 10,000 lookups. Every trial is a fresh
+process; run_trials.sh syncs and drops the page cache and waits 5 s before
+each one, and runs the trials one at a time.
+Raw output of every trial: results/raw/<backing>_<size>_<pattern>.txt.
+All phases of all trials: results/trials.csv.
+All 5 checksums matched in every trial.
+
+Sizes tested
+  Part A, internal swap: 512, 1024, 1536, 2048, 2560 MiB, uniform and hot
+  Part B, USB swap:      512, 1024, 1536 MiB, uniform and hot (PENDING)
+
+PART A - finding the memory-pressure transition (internal SSD swap)
+-------------------------------------------------------------------
+
+PART A (internal SSD swap): average access time per lookup (µs) = pass time / 10,000
+ size MiB  uniform p1  uniform p5      hot p1      hot p5
+      512       0.044       0.020       0.155       0.015
+     1024       0.047       0.026       0.021       0.017
+     1536       0.052       0.074       0.035       0.016
+     2048     123.781     118.495     786.239     217.511
+     2560     250.964     174.480     557.937     317.680
+
+PART A (internal SSD swap): major page faults during the pass
+ size MiB  uniform p1  uniform p5      hot p1      hot p5
+      512           0           0           0           0
+     1024           0           0           0           0
+     1536           0           0           0           0
+     2048        2163        2141        8426        4235
+     2560        3858        3661        8688        5113
+
+Plots: results/partA_access_time.png (table 1), results/partA_major_faults.png
+(table 2), results/partA_passes_2560.png (time per lookup by pass at 2560 MiB).
+
+Per-pass detail at 2560 MiB (µs per lookup / major faults)
+  uniform   p1: 251.0 / 3858  p2: 217.5 / 3803  p3: 176.1 / 3690  p4: 155.3 / 3663  p5: 174.5 / 3661
+  hot       p1: 557.9 / 8688  p2: 384.3 / 7545  p3: 296.5 / 6737  p4: 284.0 / 5895  p5: 317.7 / 5113
+
+Initialization and deallocation (ms / major faults / swap out KiB)
+   512 uniform  init     601.7 ms   0 maj       0 KiB out   free   28.3 ms    0 maj
+   512 hot      init     338.0 ms   0 maj       0 KiB out   free   32.4 ms    0 maj
+  1024 uniform  init     803.7 ms   0 maj       0 KiB out   free   47.1 ms    0 maj
+  1024 hot      init     495.8 ms   0 maj       0 KiB out   free   50.5 ms    0 maj
+  1536 uniform  init     974.6 ms   0 maj       0 KiB out   free   69.1 ms    0 maj
+  1536 hot      init     881.8 ms   0 maj       0 KiB out   free   73.0 ms    0 maj
+  2048 uniform  init    4414.6 ms   6 maj  435044 KiB out   free  327.8 ms  257 maj
+  2048 hot      init    4289.7 ms   7 maj  419164 KiB out   free  238.1 ms  259 maj
+  2560 uniform  init   12610.4 ms   8 maj  934092 KiB out   free  408.2 ms  231 maj
+  2560 hot      init    9029.1 ms   8 maj  929304 KiB out   free  420.7 ms  357 maj
+
+Findings (Part A)
+1. The transition lies between 1536 and 2048 MiB. About 1.6 GiB of RAM is
+   free for the process. Up to 1536 MiB everything stays resident: no major
+   faults, no swap traffic, lookups cost 15-150 ns (cache and TLB misses
+   only; the first pass is slower because the TLB and caches are cold). At
+   2048 MiB the initialization already writes 425 MiB to swap and every
+   pass has thousands of major faults: about 120 µs per lookup for uniform,
+   more than 1,000 times slower than at 1536 MiB.
+2. Each major fault costs about 0.55-0.65 ms here (e.g. 2509 ms / 3858
+   faults at 2560 MiB uniform): one 4 KiB read from the swap file through
+   VirtualBox's virtual disk. Swap-in KiB is exactly 4 x the major faults in
+   every pass, so every major fault was one page read from swap and swap
+   readahead brought in nothing extra for these random patterns.
+3. Uniform faults match the share of the allocation that is not in RAM:
+   2163 of 10,000 lookups (22%) at 2048 MiB and 3858 (39%) at 2560 MiB,
+   close to (size - ~1.6 GiB) / size = 22% and 38%. Uniform has no reuse,
+   so pass 5 is no better than pass 1: each page swapped in pushes another
+   one out, and the resident share stays the same.
+4. The hot region is slower than uniform here, the opposite of what one
+   might expect, and it improves from pass to pass. Initialization touches
+   pages in order, so the hot region (the first 10% of pages) is the oldest
+   memory and is the first to be swapped out: after initialization the hot
+   region is entirely in swap. 9,000 of the 10,000 lookups go to it, but a
+   pass touches only about 13% of its 65,536 pages (at 2560 MiB), so most
+   hot lookups in pass 1 fault (8688 faults vs 3858 for uniform). Each pass
+   pulls more of the hot region into RAM, and the faults fall: 8688, 7545,
+   6737, 5895, 5113. A simple model predicts this closely: 9,000 random
+   picks from 65,536 pages hit 8,400 distinct pages, a page is still
+   unread after k passes with probability e^(-0.137k), and the 1,000 cold
+   lookups add ~300 faults; that gives about 8710, 7650, 6720, 5915 and
+   5210. Once the 256 MiB hot region were resident, which would take about
+   20 passes, the hot pattern would see almost only the ~1,000 cold lookups
+   fault and would beat uniform by a wide margin. Locality pays off only
+   after the working set has been brought in.
+5. Swap-out during the access passes happens almost only in pass 1 (93 MiB
+   at 2560 uniform, 171 MiB at 2560 hot); later passes write little or
+   nothing.
+   Pages that were swapped in and not modified keep their copy in swap (the
+   swap cache), so when the kernel evicts them again it can drop them
+   without writing. The lookups only read.
+6. Allocation takes only milliseconds: posix_memalign of 1 MiB uses mmap,
+   which only reserves address space. Physical pages are allocated at first
+   touch, which is why initialization holds the cost (0.3-1 s without
+   pressure, 4.3-12.6 s with pressure because it also writes 410-912 MiB
+   to swap).
+7. Deallocation also has 230-360 major faults under pressure. free() reads
+   glibc's chunk header, which sits just before each 1 MiB block in a page
+   of its own. That page was written once at allocation time and never
+   again, so it is a likely candidate to be swapped out, and reading it back
+   is a major fault.
+
+PART B - internal SSD vs USB swap
+---------------------------------
+
+PENDING. The USB trials need an external USB drive attached to the VM; none
+was connected when Part A was measured. Steps are in docs/03-memory-swap.md
+("Part B on USB"). After the runs, `python3 plot.py` prints the comparison
+table (results/tables.txt) to paste here, at 512, 1024 and 1536 MiB (the
+internal-SSD side reuses the Part A trials).

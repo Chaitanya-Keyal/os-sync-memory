@@ -1,0 +1,18 @@
+PART A (internal SSD swap): average access time per lookup (µs) = pass time / 10,000
+ size MiB  uniform p1  uniform p5      hot p1      hot p5
+      512       0.044       0.020       0.155       0.015
+     1024       0.047       0.026       0.021       0.017
+     1536       0.052       0.074       0.035       0.016
+     2048     123.781     118.495     786.239     217.511
+     2560     250.964     174.480     557.937     317.680
+
+PART A (internal SSD swap): major page faults during the pass
+ size MiB  uniform p1  uniform p5      hot p1      hot p5
+      512           0           0           0           0
+     1024           0           0           0           0
+     1536           0           0           0           0
+     2048        2163        2141        8426        4235
+     2560        3858        3661        8688        5113
+
+PART B: internal SSD vs USB swap (same sizes, patterns, passes; seed 42)
+  (no USB trials in the CSV yet)

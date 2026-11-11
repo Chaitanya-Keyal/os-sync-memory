@@ -1,0 +1,16 @@
+# 2026-11-11T14:47:51+00:00 kernel 6.14.0-forkguard, 1 CPU, 1976 MiB RAM
+# swap: /swapfile-a3 4G
+2560 MiB | uniform | internal swap | seed 42
+5 passes, 10000 lookups each; page size 4096 B, 655360 pages, hot region 0 pages; swap traffic is VM-wide
+
+Phase              Time (ms)    Major   In (KiB)  Out (KiB)   Checksum
+allocation             7.374        0          0          0          -
+initialization     12610.389        8       1420     934092          -
+access_1            2509.641     3858      15436      95720    1280459
+access_2            2175.300     3803      15144          0    1281163
+access_3            1760.683     3690      14728          0    1281993
+access_4            1553.450     3663      14580          0    1263322
+access_5            1744.801     3661      14592          0    1273848
+deallocation         408.193      231       6912          0          -
+
+Completed: all 5 checksums verified.
