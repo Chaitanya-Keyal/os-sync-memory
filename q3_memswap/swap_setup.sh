@@ -64,6 +64,7 @@ usb)
     read -r -p "Erase the first $SIZE_MIB MiB of $dev and use it as swap? Type YES: " ok
     [ "$ok" = YES ] || exit 1
     all_off
+    wipefs -a "$dev" >/dev/null # old partition table / file system signatures
     # mkswap's optional block count (KiB) limits the area to 4 GiB.
     mkswap -L a3usb "$dev" $((SIZE_MIB * 1024)) >/dev/null
     swapon "$dev"
