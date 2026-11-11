@@ -10,7 +10,7 @@ priority inversion or swapping are new to you.
 | `concepts.md` | The building blocks: mutexes, condition variables, signal vs broadcast, monitors, readers-writers and aging, SCHED_FIFO, priority inversion, inheritance and ceiling, Coffman conditions, wait-for graphs, livelock, paging, faults, swap |
 | `01-telemetry-vault.md` | Problem 1: the monitor, the admission rule, signal vs broadcast, shutdown |
 | `02-priority-deadlock.md` | Problem 2: the inversion chain with three protocols, the releaser thread, deadlock detection and the timeout fix |
-| `03-memory-swap.md` | Problem 3: the program, the scripts, the Part A findings and the steps for Part B on USB |
+| `03-memory-swap.md` | Problem 3: the program, the scripts, the findings, and how the USB swap was set up for Part B |
 | `q1-evidence/` | Problem 1: test builds that force timeouts and break mutual exclusion |
 | `demo.md` | Step-by-step demo script for all three problems |
 | `viva-prep.md` | Reading order, 60-second summaries and likely questions |

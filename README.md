@@ -18,7 +18,7 @@ script are in `docs/`.
 |-----------------------|------------------------------------------------------|------------------------|
 | `q1_telemetry_vault/` | 1 - telemetry vault monitor (mutex + condvars)       | `vault`, `sample_run.txt` |
 | `q2_prio_deadlock/`   | 2 - priority inheritance/ceiling, deadlock detection | `prio_chain`, `deadlock`, `run_all.sh`, `results.txt` |
-| `q3_memswap/`         | 3 - memory pressure, locality and swap               | `memswap`, `swap_setup.sh`, `run_trials.sh`, `plot.py`, `results.txt`, `results/` |
+| `q3_memswap/`         | 3 - memory pressure, locality and swap               | `memswap`, `swap_setup.sh`, `run_trials.sh`, `run_all.sh`, `plot.py`, `results.txt`, `results/` |
 
 Tested on Ubuntu 24.04 (VirtualBox VM) with gcc 13.3 and Linux 6.14.
 Problem 3 was measured with the VM set to 1 vCPU and 2 GiB RAM, as the
@@ -130,7 +130,8 @@ cd q3_memswap
 sudo ./swap_setup.sh internal               # only a 4 GiB swap file on the VM disk, zswap off
 sudo ./run_trials.sh internal 512 1024 1536 2048 2560    # Part A
 sudo ./swap_setup.sh usb /dev/sdb           # only the USB swap area (erases its start)
-sudo ./run_trials.sh usb 512 1024 1536      # Part B
+sudo ./run_trials.sh usb 512 1024 1536 2048 # Part B
+sudo ./run_all.sh /dev/sdb                  # or: everything above in one go (~30 min)
 python3 plot.py                             # tables.txt and the three Part A plots in results/
 ```
 
@@ -148,6 +149,13 @@ python3 plot.py                             # tables.txt and the three Part A pl
 * `results.txt` holds the tables, the tested sizes and the findings. The
   three plots are in `results/`, and every trial's raw output is in
   `results/raw/`.
-* Part A (internal swap) is complete: the pressure transition is between
-  1536 and 2048 MiB. **Part B (USB swap) still has to be run with a USB
-  drive attached.** See `docs/03-memory-swap.md`.
+* Part A: the pressure transition is between 1536 MiB (no major faults)
+  and 2048 MiB (about 1,700 major faults per uniform pass, 0.5-0.9 ms
+  each). The hot region starts slower than uniform, because it is the
+  oldest memory and is swapped out first, and improves pass by pass.
+* Part B: the USB device is a SanDisk pen drive passed through to the VM.
+  512-1536 MiB never swap, so both backings look the same. At 2048 MiB,
+  added to show the effect, initialization is 8-12x slower on USB and each
+  major fault 4-9x slower. Both parts ran on the stock 6.8 kernel (the
+  custom kernel has no USB storage driver). Setup steps are in
+  `docs/03-memory-swap.md`.

@@ -83,7 +83,7 @@ Needs 1 vCPU / 2 GiB (see above).
 cd ../q3_memswap
 sudo ./swap_setup.sh internal                 # only /swapfile-a3, zswap N
 ./memswap 1536 uniform 42 internal            # fits: 0 major faults, ~0.05 µs per lookup
-./memswap 2048 uniform 42 internal            # pressure: ~2,000 major faults per pass, In = 4 x Major
+./memswap 2048 uniform 42 internal            # pressure: ~1,700 major faults per pass, In = 4 x Major
 ./memswap 2048 hot 42 internal                # hot slower at first, improves each pass
 sudo ./swap_setup.sh off
 ```

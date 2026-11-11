@@ -10,7 +10,7 @@ swap traffic. Then:
 * **Part A:** with swap on the VM's own disk (host internal SSD), find the
   size at which memory runs out, testing 512-2560 MiB.
 * **Part B:** compare that against swap on an external USB device at 512,
-  1024 and 1536 MiB.
+  1024 and 1536 MiB (we also ran 2048 MiB, the first size that swaps).
 
 The VM must have 1 vCPU and 2 GiB RAM, 4 GiB of swap on the backing under
 test, only that backing active, and zswap/zram off.
@@ -52,9 +52,10 @@ phase) happens after the last phase.
 
 **Major vs minor fault.** A minor fault is resolved without I/O (a new zero
 page, or a page still in memory). A major fault needs I/O: here, reading the
-page back from swap. That is why `In (KiB)` is exactly 4 × the major faults
-in every access pass. `pswpin`/`pswpout` are VM-wide, so background activity
-would show up too. The VM is idle apart from the trial, so they match.
+page back from swap. That is why `In (KiB)` is 4 × the major faults in
+every access pass. `pswpin`/`pswpout` are VM-wide, so background activity
+would show up too. The VM is idle apart from the trial, so they match to
+within a few pages.
 
 ## The scripts
 
@@ -67,78 +68,110 @@ would show up too. The VM is idle apart from the trial, so they match.
   then hot, each as a fresh process. Before each trial it runs `sync`, drops
   the page cache and waits 5 s. Output goes to `results/raw/` and
   `results/trials.csv`.
+* `run_all.sh /dev/sdX`: the whole measurement behind `results.txt`: Part A
+  on internal swap, Part B on USB swap (512-1536 plus 2048 MiB), swap off.
+  Before every size it runs one throwaway 1500 MiB trial (see the host note
+  below).
 * `plot.py`: reads the CSV and writes `results/tables.txt` (Part A tables
   and the Part B comparison) and the three Part A plots.
 
-## Results so far (Part A)
+## Part A results
 
 See `q3_memswap/results.txt` for the tables and findings. In short:
 
-* 512-1536 MiB fit in RAM: no major faults, 15-150 ns per lookup.
-* At 2048 MiB the initialization pushes 425 MiB to swap and every pass takes
-  over 2,000 major faults: about 120 µs per lookup, more than 1,000× slower.
-  At 2560 MiB it is about 3,800 faults per pass for uniform.
-* One major fault costs about 0.6 ms on this setup.
+* 512-1536 MiB fit in RAM: no major faults, 18-56 ns per lookup.
+* At 2048 MiB the initialization pushes 339 MiB to swap and every pass has
+  about 1,700 (uniform) to 8,400 (hot) major faults: 96-152 µs per lookup
+  for uniform, thousands of times slower. At 2560 MiB it is about 3,500
+  faults per pass for uniform.
+* One major fault costs about 0.5-0.9 ms on the internal SSD (pass 1 can be
+  dearer while write-back from initialization is still going on).
 * **Hot is slower than uniform at first, and improves each pass.** The hot
   region is the first 10% of pages, which were written first, so they are
   the oldest and get swapped out first. After initialization the whole hot
   region is in swap. A pass touches only about 13% of it, so hot faults fall
-  slowly: 8688 → 7545 → 6737 → 5895 → 5113. Uniform stays flat at about
-  3,700, because it never reuses anything.
-* Later passes write almost nothing to swap: pages that were read back and
-  not modified still have their copy in swap (the swap cache), so they can
-  be dropped without writing.
+  slowly: 8725 → 7556 → 6759 → 5922 → 5125. Uniform stays flat at about
+  3,500, because it never reuses anything.
+* Uniform's later passes write little to swap: pages that were read back
+  and not modified still have their copy in swap (the swap cache), so they
+  can be dropped without writing.
 
-## Part B on USB (still to do)
+## Part B: how the USB swap was set up
 
-Needs a USB drive with at least 5 GB free (any file system Windows can
-write, e.g. NTFS or exFAT). The VM gets a 4.1 GB fixed-size virtual disk
-stored **on the USB drive**. Guest swap I/O then goes to the USB device,
-exactly as the internal-SSD swap file goes to the laptop's SSD. The disk is
-attached to the same SCSI controller as the root disk, which has the host
-I/O cache off. So neither backing is cached in host RAM.
+The USB device is a SanDisk 3.2Gen1 64 GB pen drive. The **whole drive is
+passed through to the VM** with a VirtualBox USB filter, so the guest kernel
+talks to it directly as `/dev/sdb`, and `swap_setup.sh usb /dev/sdb` puts a
+4 GiB swap area at its start. The custom 6.14 kernel the VM normally boots
+has no USB storage driver, so all of Problem 3 (both parts) was measured on
+Ubuntu's stock 6.8.0-146-generic kernel. That keeps the VM settings identical
+between the two backings, as the spec asks.
 
-From WSL on the laptop, with the VM powered off (assuming the drive is `E:`):
+From WSL on the laptop, with the VM powered off and the drive plugged in:
 
 ```bash
 VB="/mnt/c/Program Files/Oracle/VirtualBox/VBoxManage.exe"
-"$VB" modifyvm cs-f372-ubuntu --cpus 1 --memory 2048
-"$VB" createmedium disk --filename 'E:\a3swap.vdi' --size 4200 --variant Fixed
-"$VB" storageattach cs-f372-ubuntu --storagectl SCSI --port 1 --device 0 --type hdd --medium 'E:\a3swap.vdi'
+"$VB" modifyvm cs-f372-ubuntu --cpus 1 --memory 2048 --usbxhci on
+"$VB" usbfilter add 0 --target cs-f372-ubuntu --name a3-sandisk --vendorid 0781 --productid 55a9
 "$VB" startvm cs-f372-ubuntu --type headless
 ```
 
-In the VM:
+In the VM (once, to boot the stock kernel; the next boot returns to the
+default one):
+
+```bash
+sudo grub-reboot 'Advanced options for Ubuntu>Ubuntu, with Linux 6.8.0-146-generic' && sudo reboot
+```
+
+Then:
 
 ```bash
 cd ~/assignment-3 && make
-lsblk                                     # the new 4.1G disk, normally sdb
+lsblk -o NAME,SIZE,TRAN,MODEL      # the USB disk, normally sdb
 cd q3_memswap
-sudo ./swap_setup.sh usb /dev/sdb         # type YES
-sudo ./run_trials.sh usb 512 1024 1536
-sudo ./swap_setup.sh off
+sudo ./run_all.sh /dev/sdb         # about 30 min; type YES when asked
+python3 plot.py
 ```
 
-Then copy `results/` back and run `python3 plot.py`. The Part B table in
-`results/tables.txt` lines up each USB trial with the matching internal one
-(the internal side reuses Part A). Paste it into the Part B section of
-`results.txt` with a few lines on what differs.
+**Host memory matters.** The VM runs under Hyper-V, which pages out guest
+memory the VM has not used recently when Windows is short of RAM. A first
+run made while a browser was using several GB showed the first trial of each
+size 5-8× slower than an identical second trial, with no swapping at all
+inside the VM. Close the browser and other large apps before measuring.
+`run_all.sh` also runs a throwaway 1500 MiB trial before every size to pull
+the VM's memory back into host RAM. Fault and swap counts come from the
+guest kernel and are not affected; only times are.
 
-**What to expect.** 512 and 1024 MiB never touch swap, so both backings
-should look the same. 1536 MiB barely fit in RAM on internal swap (no major
-faults), so it should complete on USB too, and the spec's "additional size"
-is then not required. The two backings will only differ visibly where
-pages actually move. For a clearer comparison it is worth also running 2048
-on USB (`sudo ./run_trials.sh usb 2048`), since the internal 2048 run
-already exists. Expect the USB initialization (425 MiB written) and every
-major fault to be several times slower.
+## Part B results
 
-If 1536 MiB on USB takes impractically long, try sizes between 1024 and
-1536 in small steps. Pick the first one whose uniform trial shows non-zero
-major faults and swap-ins in at least one access pass, run it on both
-backings (`run_trials.sh internal <size>` after switching back with
-`swap_setup.sh internal`), and add it to Part A.
+* 512, 1024 and 1536 MiB never touch swap on either backing (zero major
+  faults, zero swap traffic), so the backing makes no difference there.
+  1536 finished in under a second on USB, so the spec's extra size between
+  1024 and 1536 was not needed.
+* To see the backing's effect, 2048 MiB (the first size that swaps) was also
+  run on USB:
 
-Afterwards: power off, then
-`"$VB" storageattach cs-f372-ubuntu --storagectl SCSI --port 1 --device 0 --medium none`.
-Delete `E:\a3swap.vdi` if it is no longer needed.
+  | 2048 MiB | internal SSD | USB pen drive |
+  |---|---|---|
+  | initialization, uniform / hot | 3.7 s / 4.4 s | 46.5 s / 34.5 s |
+  | pass 1, uniform | 1.3 s, 1674 faults | 8.1 s, 2061 faults |
+  | pass 5, uniform | 1.0 s, 1710 faults | 8.3 s, 1864 faults |
+  | pass 1, hot | 14.0 s, 8395 faults | 18.7 s, 7889 faults |
+  | pass 5, hot | 2.1 s, 4242 faults | 8.5 s, 3984 faults |
+  | cost per major fault | 0.5-0.9 ms | 2.1-4.5 ms |
+
+* The pen drive writes swap at only about 8-11 MiB/s, so initialization is
+  8-12× slower, and each fault (one random 4 KiB read) is 4-9× slower.
+* Fault counts are about the same on both: the program decides how many
+  pages miss; the device only decides how long each miss takes.
+
+## Afterwards
+
+Power off the VM, then restore it:
+
+```bash
+"$VB" usbfilter remove 0 --target cs-f372-ubuntu
+"$VB" modifyvm cs-f372-ubuntu --usbxhci off --cpus 4 --memory 4096
+```
+
+The pen drive now holds a swap signature; Windows will offer to format it
+when it is plugged in.
