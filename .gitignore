@@ -1,0 +1,16 @@
+# Build outputs (rebuild with `make`)
+q1_telemetry_vault/vault
+q2_prio_deadlock/prio_chain
+q2_prio_deadlock/deadlock
+q3_memswap/memswap
+*.o
+*.tar.gz
+
+# Python
+__pycache__/
+
+# Editor / OS noise
+.vscode/
+.idea/
+*.swp
+.DS_Store
