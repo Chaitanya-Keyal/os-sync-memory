@@ -1,0 +1,92 @@
+Part A: L(10) D(20) H(30) X(25) on CPU 0, SCHED_FIFO, 5 runs per version
+threads released by clock_nanosleep on CPU 0
+
+=== PRIO_NONE ===
+  event trace (PRIO_NONE, run 1):
+    [     0.19 ms] L  started
+    [     0.21 ms] L  lock M1 requested
+    [     0.21 ms] L  lock M1 acquired
+    [   105.62 ms] D  started
+    [   105.62 ms] D  lock M2 requested
+    [   105.62 ms] D  lock M2 acquired
+    [   105.62 ms] D  lock M1 requested
+    [   208.58 ms] H  started
+    [   208.58 ms] H  lock M2 requested
+    [   302.66 ms] X  started
+    [  2325.24 ms] X  finished
+    [  2628.92 ms] L  lock M1 released
+    [  2628.93 ms] D  lock M1 acquired
+    [  2729.32 ms] D  lock M1 released
+    [  2729.33 ms] D  lock M2 released
+    [  2729.34 ms] H  lock M2 acquired
+    [  2729.34 ms] H  lock M2 released
+    [  2729.34 ms] H  finished
+    [  2729.38 ms] D  finished
+    [  2729.38 ms] L  finished
+  run 1: H blocking  2520.76 ms   H response  2529.34 ms
+  run 2: H blocking  2521.25 ms   H response  2528.49 ms
+  run 3: H blocking  2524.04 ms   H response  2533.70 ms
+  run 4: H blocking  2524.98 ms   H response  2527.84 ms
+  run 5: H blocking  2517.96 ms   H response  2527.72 ms
+
+=== PRIO_INHERIT ===
+  event trace (PRIO_INHERIT, run 1):
+    [     0.36 ms] L  started
+    [     0.39 ms] L  lock M1 requested
+    [     0.39 ms] L  lock M1 acquired
+    [   114.73 ms] D  started
+    [   114.73 ms] D  lock M2 requested
+    [   114.73 ms] D  lock M2 acquired
+    [   114.73 ms] D  lock M1 requested
+    [   207.81 ms] H  started
+    [   207.81 ms] H  lock M2 requested
+    [   603.20 ms] L  lock M1 released
+    [   603.34 ms] D  lock M1 acquired
+    [   703.75 ms] D  lock M1 released
+    [   703.76 ms] D  lock M2 released
+    [   703.78 ms] H  lock M2 acquired
+    [   703.78 ms] H  lock M2 released
+    [   703.78 ms] H  finished
+    [   703.89 ms] X  started
+    [  2728.38 ms] X  finished
+    [  2728.53 ms] D  finished
+    [  2728.56 ms] L  finished
+  run 1: H blocking   495.97 ms   H response   503.78 ms
+  run 2: H blocking   499.99 ms   H response   500.54 ms
+  run 3: H blocking   485.70 ms   H response   501.83 ms
+  run 4: H blocking   497.24 ms   H response   501.08 ms
+  run 5: H blocking   491.12 ms   H response   500.95 ms
+
+=== PRIO_PROTECT ===
+  event trace (PRIO_PROTECT, run 1):
+    [     0.19 ms] L  started
+    [     0.20 ms] L  lock M1 requested
+    [     0.38 ms] L  lock M1 acquired
+    [   600.39 ms] L  lock M1 released
+    [   600.42 ms] H  started
+    [   600.42 ms] H  lock M2 requested
+    [   600.67 ms] H  lock M2 acquired
+    [   600.67 ms] H  lock M2 released
+    [   600.67 ms] H  finished
+    [   600.73 ms] X  started
+    [  2635.87 ms] X  finished
+    [  2635.92 ms] D  started
+    [  2635.92 ms] D  lock M2 requested
+    [  2635.93 ms] D  lock M2 acquired
+    [  2635.93 ms] D  lock M1 requested
+    [  2635.93 ms] D  lock M1 acquired
+    [  2738.04 ms] D  lock M1 released
+    [  2738.05 ms] D  lock M2 released
+    [  2738.06 ms] D  finished
+    [  2738.15 ms] L  finished
+  run 1: H blocking     0.25 ms   H response   400.67 ms
+  run 2: H blocking     0.00 ms   H response   400.21 ms
+  run 3: H blocking     0.00 ms   H response   401.41 ms
+  run 4: H blocking     0.00 ms   H response   400.47 ms
+  run 5: H blocking     0.00 ms   H response   400.58 ms
+
+H, average of 5 runs (ms)
+version       block pred block meas    resp pred  resp meas
+PRIO_NONE         2500.0    2521.80       2500.0    2529.42
+PRIO_INHERIT       500.0     494.00        500.0     501.63
+PRIO_PROTECT         0.0       0.05        400.0     400.67

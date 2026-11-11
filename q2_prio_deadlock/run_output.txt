@@ -1,0 +1,146 @@
+# 2026-11-11T14:40:06+00:00 kernel 6.14.0-forkguard, 4 CPUs
+
+Part A: L(10) D(20) H(30) X(25) on CPU 0, SCHED_FIFO, 5 runs per version
+threads released by the releaser thread on CPU 1
+
+=== PRIO_NONE ===
+  event trace (PRIO_NONE, run 1):
+    [     0.53 ms] L  started
+    [     0.53 ms] L  lock M1 requested
+    [     0.53 ms] L  lock M1 acquired
+    [   100.37 ms] D  started
+    [   100.37 ms] D  lock M2 requested
+    [   100.37 ms] D  lock M2 acquired
+    [   100.37 ms] D  lock M1 requested
+    [   200.71 ms] H  started
+    [   200.72 ms] H  lock M2 requested
+    [   300.23 ms] X  started
+    [  2300.50 ms] X  finished
+    [  2601.42 ms] L  lock M1 released
+    [  2601.48 ms] D  lock M1 acquired
+    [  2701.48 ms] D  lock M1 released
+    [  2701.50 ms] D  lock M2 released
+    [  2701.55 ms] H  lock M2 acquired
+    [  2701.55 ms] H  lock M2 released
+    [  2701.55 ms] H  finished
+    [  2701.67 ms] D  finished
+    [  2701.69 ms] L  finished
+  run 1: H blocking  2500.83 ms   H response  2501.55 ms
+  run 2: H blocking  2500.93 ms   H response  2501.25 ms
+  run 3: H blocking  2501.04 ms   H response  2501.32 ms
+  run 4: H blocking  2500.82 ms   H response  2500.99 ms
+  run 5: H blocking  2500.52 ms   H response  2500.84 ms
+
+=== PRIO_INHERIT ===
+  event trace (PRIO_INHERIT, run 1):
+    [     0.26 ms] L  started
+    [     0.26 ms] L  lock M1 requested
+    [     0.26 ms] L  lock M1 acquired
+    [   100.25 ms] D  started
+    [   100.25 ms] D  lock M2 requested
+    [   100.25 ms] D  lock M2 acquired
+    [   100.25 ms] D  lock M1 requested
+    [   200.21 ms] H  started
+    [   200.21 ms] H  lock M2 requested
+    [   600.59 ms] L  lock M1 released
+    [   600.65 ms] D  lock M1 acquired
+    [   700.65 ms] D  lock M1 released
+    [   700.70 ms] D  lock M2 released
+    [   700.72 ms] H  lock M2 acquired
+    [   700.72 ms] H  lock M2 released
+    [   700.72 ms] H  finished
+    [   700.77 ms] X  started
+    [  2701.04 ms] X  finished
+    [  2701.12 ms] D  finished
+    [  2701.13 ms] L  finished
+  run 1: H blocking   500.51 ms   H response   500.72 ms
+  run 2: H blocking   500.48 ms   H response   500.79 ms
+  run 3: H blocking   500.64 ms   H response   500.83 ms
+  run 4: H blocking   500.31 ms   H response   500.62 ms
+  run 5: H blocking   500.50 ms   H response   500.86 ms
+
+=== PRIO_PROTECT ===
+  event trace (PRIO_PROTECT, run 1):
+    [     0.12 ms] L  started
+    [     0.13 ms] L  lock M1 requested
+    [     0.70 ms] L  lock M1 acquired
+    [   600.77 ms] L  lock M1 released
+    [   600.81 ms] H  started
+    [   600.81 ms] H  lock M2 requested
+    [   601.04 ms] H  lock M2 acquired
+    [   601.04 ms] H  lock M2 released
+    [   601.04 ms] H  finished
+    [   601.10 ms] X  started
+    [  2601.42 ms] X  finished
+    [  2601.49 ms] D  started
+    [  2601.49 ms] D  lock M2 requested
+    [  2601.50 ms] D  lock M2 acquired
+    [  2601.50 ms] D  lock M1 requested
+    [  2601.50 ms] D  lock M1 acquired
+    [  2701.57 ms] D  lock M1 released
+    [  2701.58 ms] D  lock M2 released
+    [  2701.60 ms] D  finished
+    [  2701.74 ms] L  finished
+  run 1: H blocking     0.23 ms   H response   401.04 ms
+  run 2: H blocking     0.01 ms   H response   400.71 ms
+  run 3: H blocking     0.01 ms   H response   400.91 ms
+  run 4: H blocking     0.00 ms   H response   400.56 ms
+  run 5: H blocking     0.00 ms   H response   400.62 ms
+
+H, average of 5 runs (ms)
+version       block pred block meas    resp pred  resp meas
+PRIO_NONE         2500.0    2500.83       2500.0    2501.19
+PRIO_INHERIT       500.0     500.48        500.0     500.76
+PRIO_PROTECT         0.0       0.05        400.0     400.77
+
+Part B: hang demo - T1: A->B, T2: B->C, T3: C->A, blocking locks
+  [watchdog   109.7 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+  [watchdog] threads are blocked forever (no timeout in this version); exiting with code 2
+(exit code 2)
+
+Part B: fixed version - pthread_mutex_timedlock (300 ms), release all and back off 50-250 ms on timeout, 20 runs
+  [watchdog   101.6 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  1: completion   869.4 ms   retries 2 (T1 0, T2 1, T3 1)   deadlock cycles seen by watchdog: 1
+  [watchdog   100.5 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  2: completion   687.7 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   117.8 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  3: completion   754.7 ms   retries 2 (T1 0, T2 1, T3 1)   deadlock cycles seen by watchdog: 1
+  [watchdog   104.1 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  4: completion   681.9 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   105.4 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  5: completion   779.1 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   101.8 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  6: completion   790.0 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   135.6 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  7: completion   717.8 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   158.1 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  8: completion   836.9 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   109.1 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  9: completion   667.0 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   117.9 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 10: completion   712.6 ms   retries 2 (T1 1, T2 0, T3 1)   deadlock cycles seen by watchdog: 1
+  [watchdog   106.0 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 11: completion   830.3 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   103.8 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 12: completion   649.7 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   114.3 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 13: completion   730.1 ms   retries 1 (T1 0, T2 0, T3 1)   deadlock cycles seen by watchdog: 1
+  [watchdog   117.5 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 14: completion   833.1 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   132.0 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 15: completion   749.8 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   103.4 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 16: completion   928.3 ms   retries 2 (T1 1, T2 0, T3 1)   deadlock cycles seen by watchdog: 1
+  [watchdog   123.1 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 17: completion   800.9 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   100.4 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 18: completion   728.9 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   101.5 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 19: completion   760.8 ms   retries 2 (T1 0, T2 1, T3 1)   deadlock cycles seen by watchdog: 1
+  [watchdog   102.5 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 20: completion   686.2 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+
+summary over 20 runs:
+  completion time  average 759.8 ms, maximum 928.3 ms, median 754.7 ms
+  retries per run  average 1.95, maximum 2
+  unusually long runs (> 1.5 x median = 1132.1 ms): none

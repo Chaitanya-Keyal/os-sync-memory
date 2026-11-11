@@ -1,0 +1,256 @@
+CS F372 Assignment 3 - Problem 2 results
+========================================
+
+Measured on the course VM: Ubuntu 24.04, kernel 6.14.0-forkguard, VirtualBox,
+4 vCPUs, all test threads pinned to CPU 0 (sched_setaffinity), run as root.
+Full raw output of `sudo ./run_all.sh`: run_output.txt.
+
+PART A - transitive priority inversion
+--------------------------------------
+
+Scenario (all SCHED_FIFO on CPU 0; busy work = thread CPU time, so a
+preempted thread makes no progress):
+  L prio 10, t=0     lock M1, 600 ms work, unlock M1
+  D prio 20, t=100   lock M2, lock M1, 100 ms work, unlock M1, unlock M2
+  H prio 30, t=200   lock M2 (then unlock it)
+  X prio 25, t=300   2000 ms work, no mutex
+H blocking time  = time from calling lock(M2) to acquiring it
+H response time  = time from H's intended release (200 ms) to acquiring M2
+
+Predictions (written before running)
+
+PRIO_NONE. L runs 0-100. D preempts, takes M2, blocks on M1. L runs 100-200.
+H preempts, blocks on M2 (held by D). L runs 200-300 (300 ms of work done).
+X (25) preempts L (10) and runs 300-2300. L finishes its last 300 ms at
+2600 and unlocks M1. D runs 2600-2700 and unlocks M2. H gets M2 at 2700.
+  blocking = 2700 - 200 = 2500 ms, response = 2500 ms
+  (the CPU is never idle from 0 to 2700 ms: L 600 + X 2000 + D 100).
+
+PRIO_INHERIT. At 100 D blocks on M1 and L inherits 20. At 200 H blocks on M2:
+D inherits 30, and because D is itself blocked on M1 held by L, the boost is
+passed along the chain, so L also runs at 30. X (25) cannot preempt L. L
+finishes at 600, D (still at 30) runs 600-700, H gets M2 at 700. X runs
+700-2700.
+  blocking = 500 ms, response = 500 ms
+
+PRIO_PROTECT (ceiling 30). Locking M1 at 0 raises L to 30 immediately. At
+100 D (20) cannot preempt; at 200 H (30) is equal, not higher, so under FIFO
+it waits behind L; X (25) cannot preempt either. L finishes and unlocks M1
+at 600 and drops back to 10. H, the highest ready thread, now runs for the
+first time, calls lock(M2) - and M2 is free, because D never got to run and
+lock it. X runs 600-2600, then D 2600-2700.
+  blocking = 0 ms, response = 600 - 200 = 400 ms
+
+Predicted vs measured (H, average of 5 runs, ms)
+
+  version        blocking               response
+                 predicted  measured    predicted  measured
+  PRIO_NONE        2500     2500.83       2500     2501.19
+  PRIO_INHERIT      500      500.48        500      500.76
+  PRIO_PROTECT        0        0.05        400      400.77
+
+Individual runs (blocking / response, ms)
+  PRIO_NONE      2500.83/2501.55 2500.93/2501.25 2501.04/2501.32 2500.82/2500.99 2500.52/2500.84
+  PRIO_INHERIT    500.51/500.72   500.48/500.79   500.64/500.83   500.31/500.62   500.50/500.86
+  PRIO_PROTECT      0.23/401.04     0.01/400.71     0.01/400.91     0.00/400.56     0.00/400.62
+
+Mismatch. Every measured value is within 1.2 ms of the prediction. The
+small excess is overhead: each run starts with the releaser waking threads
+over an inter-processor interrupt (about 0.1-0.5 ms), context switches,
+the futex system calls on each lock/unlock (PI mutexes always go through
+the kernel), and for PRIO_PROTECT glibc's sched_setparam calls on lock and
+unlock (L's lock M1 took 0.6 ms in run 1).
+
+Why blocking and response differ for PRIO_PROTECT. Blocking time only starts
+when H calls pthread_mutex_lock. With a ceiling of 30, L runs at priority 30
+from the moment it locks M1, so H (also 30) cannot even start until L
+unlocks at 600 ms. H's whole 400 ms delay is spent *before* it calls lock,
+waiting for the CPU, and its lock call then succeeds at once. The ceiling
+turned "blocked on a mutex" into "not yet scheduled": blocking time is ~0,
+but the response latency (400 ms) shows the real delay. In the other two
+versions H runs at once at 200 ms and all the delay is inside lock(), so the
+two numbers are equal.
+
+Event traces, run 1 of each version (ms from the start of the run)
+
+  event trace (PRIO_NONE, run 1):
+    [     0.53 ms] L  started
+    [     0.53 ms] L  lock M1 requested
+    [     0.53 ms] L  lock M1 acquired
+    [   100.37 ms] D  started
+    [   100.37 ms] D  lock M2 requested
+    [   100.37 ms] D  lock M2 acquired
+    [   100.37 ms] D  lock M1 requested
+    [   200.71 ms] H  started
+    [   200.72 ms] H  lock M2 requested
+    [   300.23 ms] X  started
+    [  2300.50 ms] X  finished
+    [  2601.42 ms] L  lock M1 released
+    [  2601.48 ms] D  lock M1 acquired
+    [  2701.48 ms] D  lock M1 released
+    [  2701.50 ms] D  lock M2 released
+    [  2701.55 ms] H  lock M2 acquired
+    [  2701.55 ms] H  lock M2 released
+    [  2701.55 ms] H  finished
+    [  2701.67 ms] D  finished
+    [  2701.69 ms] L  finished
+  event trace (PRIO_INHERIT, run 1):
+    [     0.26 ms] L  started
+    [     0.26 ms] L  lock M1 requested
+    [     0.26 ms] L  lock M1 acquired
+    [   100.25 ms] D  started
+    [   100.25 ms] D  lock M2 requested
+    [   100.25 ms] D  lock M2 acquired
+    [   100.25 ms] D  lock M1 requested
+    [   200.21 ms] H  started
+    [   200.21 ms] H  lock M2 requested
+    [   600.59 ms] L  lock M1 released
+    [   600.65 ms] D  lock M1 acquired
+    [   700.65 ms] D  lock M1 released
+    [   700.70 ms] D  lock M2 released
+    [   700.72 ms] H  lock M2 acquired
+    [   700.72 ms] H  lock M2 released
+    [   700.72 ms] H  finished
+    [   700.77 ms] X  started
+    [  2701.04 ms] X  finished
+    [  2701.12 ms] D  finished
+    [  2701.13 ms] L  finished
+  event trace (PRIO_PROTECT, run 1):
+    [     0.12 ms] L  started
+    [     0.13 ms] L  lock M1 requested
+    [     0.70 ms] L  lock M1 acquired
+    [   600.77 ms] L  lock M1 released
+    [   600.81 ms] H  started
+    [   600.81 ms] H  lock M2 requested
+    [   601.04 ms] H  lock M2 acquired
+    [   601.04 ms] H  lock M2 released
+    [   601.04 ms] H  finished
+    [   601.10 ms] X  started
+    [  2601.42 ms] X  finished
+    [  2601.49 ms] D  started
+    [  2601.49 ms] D  lock M2 requested
+    [  2601.50 ms] D  lock M2 acquired
+    [  2601.50 ms] D  lock M1 requested
+    [  2601.50 ms] D  lock M1 acquired
+    [  2701.57 ms] D  lock M1 released
+    [  2701.58 ms] D  lock M2 released
+    [  2701.60 ms] D  finished
+    [  2701.74 ms] L  finished
+
+How the threads are released. A thread that sleeps with clock_nanosleep
+needs a timer interrupt to wake up. On our VirtualBox VM (which runs on
+Hyper-V because WSL2 is enabled on the host) timer interrupts reach a busy
+vCPU 10-200 ms late: a test that slept 10 ms a hundred times was on average
+24 ms late and once 245 ms late, and D sometimes started after H, which
+breaks the chain. So by default prio_chain starts a "releaser" thread on
+CPU 1 (prio 99) that spins on CLOCK_MONOTONIC and wakes each thread at its
+start time through a condition variable. That wakeup arrives as an
+inter-processor interrupt, measured at 0.2-1 ms late. The four test threads
+still all run on CPU 0, so the inversion itself is unchanged. `./prio_chain
+-t` uses clock_nanosleep on CPU 0 instead (fine on bare metal).
+
+Cross-check with plain timers on a 1-CPU machine. The late timers only
+happen with 4 vCPUs: with the VM set to 1 vCPU, timer wakeups were 0.3 ms
+late on average. There we ran `sudo ./prio_chain -t 5` (every thread
+sleeps with clock_nanosleep, no second CPU at all). Output:
+run_output_1cpu_timers.txt.
+
+  version        blocking (pred / meas)   response (pred / meas)
+  PRIO_NONE        2500 / 2521.80           2500 / 2529.42
+  PRIO_INHERIT      500 /  494.00            500 /  501.63
+  PRIO_PROTECT        0 /    0.05            400 /  400.67
+
+Same results, a little noisier, for two reasons. The releases are now a
+few ms late (D started at 105.6 ms in run 1); a late H makes its blocking
+time shorter by that amount (INHERIT 494 ms). And with a single CPU, normal
+tasks (sshd, kernel workers) can only run on that CPU: the kernel's fair
+server reserves them up to 50 ms per second even over SCHED_FIFO threads,
+which adds roughly 20-30 ms to the 2.7 s PRIO_NONE run.
+
+PART B - deadlock detection and the timeout fix
+-----------------------------------------------
+
+Hang demo (`./deadlock hang`, blocking pthread_mutex_lock):
+
+Part B: hang demo - T1: A->B, T2: B->C, T3: C->A, blocking locks
+  [watchdog   109.7 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+  [watchdog] threads are blocked forever (no timeout in this version); exiting with code 2
+(exit code 2)
+
+The threads block on their second lock at about 100 ms (the 100 ms sleeps
+end a few ms late on the VM). The watchdog checks the wait-for graph every
+1 ms and reports the cycle at 109.7 ms (T1 waits for B held by T2, T2 waits
+for C held by T3, T3 waits for A held by T1), far inside the 1 s limit, then
+exits with code 2.
+
+Fixed version (`./deadlock fix 20`): pthread_mutex_timedlock with a 300 ms
+timeout; on timeout release everything held, wait a random 50-250 ms, retry.
+
+Part B: fixed version - pthread_mutex_timedlock (300 ms), release all and back off 50-250 ms on timeout, 20 runs
+  [watchdog   101.6 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  1: completion   869.4 ms   retries 2 (T1 0, T2 1, T3 1)   deadlock cycles seen by watchdog: 1
+  [watchdog   100.5 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  2: completion   687.7 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   117.8 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  3: completion   754.7 ms   retries 2 (T1 0, T2 1, T3 1)   deadlock cycles seen by watchdog: 1
+  [watchdog   104.1 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  4: completion   681.9 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   105.4 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  5: completion   779.1 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   101.8 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  6: completion   790.0 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   135.6 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  7: completion   717.8 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   158.1 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  8: completion   836.9 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   109.1 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run  9: completion   667.0 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   117.9 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 10: completion   712.6 ms   retries 2 (T1 1, T2 0, T3 1)   deadlock cycles seen by watchdog: 1
+  [watchdog   106.0 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 11: completion   830.3 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   103.8 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 12: completion   649.7 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   114.3 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 13: completion   730.1 ms   retries 1 (T1 0, T2 0, T3 1)   deadlock cycles seen by watchdog: 1
+  [watchdog   117.5 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 14: completion   833.1 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   132.0 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 15: completion   749.8 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   103.4 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 16: completion   928.3 ms   retries 2 (T1 1, T2 0, T3 1)   deadlock cycles seen by watchdog: 1
+  [watchdog   123.1 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 17: completion   800.9 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   100.4 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 18: completion   728.9 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+  [watchdog   101.5 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 19: completion   760.8 ms   retries 2 (T1 0, T2 1, T3 1)   deadlock cycles seen by watchdog: 1
+  [watchdog   102.5 ms] DEADLOCK cycle detected: T1 -> B -> T2 -> C -> T3 -> A -> T1
+run 20: completion   686.2 ms   retries 2 (T1 1, T2 1, T3 0)   deadlock cycles seen by watchdog: 1
+
+summary over 20 runs:
+  completion time  average 759.8 ms, maximum 928.3 ms, median 754.7 ms
+  retries per run  average 1.95, maximum 2
+  unusually long runs (> 1.5 x median = 1132.1 ms): none
+
+Every run still forms the cycle at ~100 ms (the watchdog sees it once per
+run), then the first timeouts at ~400 ms break it. Usually two threads time
+out and one gets the lock the other released, so 2 retries is typical; in
+run 13 only one thread timed out. Completion: average 759.8 ms, maximum
+928.3 ms. No run took unusually long (none above 1.5 x the median); the
+slowest (run 16, 928 ms) most likely drew long backoffs for both retrying
+threads.
+
+Short note
+----------
+Priority inheritance only helps when a high-priority thread waits for a
+lower-priority one that is able to run: it lends priority so the holder
+finishes sooner. In Part B every thread is blocked on a lock held by another
+blocked thread, so there is nobody to boost; raising priorities cannot break
+a cycle. The fix breaks the Coffman condition "no preemption" (and with it
+hold-and-wait): a thread that times out gives back the lock it holds, so the
+circular wait cannot last. It can still livelock in theory: if all three
+time out together, back off for the same time and retry in lockstep, the
+cycle forms again forever. The random 50-250 ms backoff (independent seed per
+thread and run) makes repeated identical timing very unlikely, and in 20 runs
+no thread ever needed more than one retry.
